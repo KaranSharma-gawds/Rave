@@ -18,6 +18,7 @@ import java.io.PrintWriter;
 import excal.rave.Assistance.Donor;
 import excal.rave.Assistance.ReceiverForWifi;
 import excal.rave.Assistance.Reciever;
+import excal.rave.Assistance.WifiP2pServiceDiscoveryHelper;
 import excal.rave.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     Channel mChannel;
     WifiP2pManager mManager;
     String role;
+    boolean isWifiEnabled;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,15 +44,16 @@ public class MainActivity extends AppCompatActivity {
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
+        WifiP2pServiceDiscoveryHelper helper = new WifiP2pServiceDiscoveryHelper(mChannel,mManager,this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(role.equals("Master")){
-            registerReceiver(new ReceiverForWifi(mManager,mChannel,new Donor()),intentFilter);
-        } else if(role.equals("SLAVE")){
-            registerReceiver(new ReceiverForWifi(mManager,mChannel,new Reciever()),intentFilter);
-        }
+        registerReceiver(new ReceiverForWifi(mManager,mChannel,this),intentFilter);
+    }
+
+    public void setIsWifiP2pEnabled(boolean isWifiEnabled) {
+        this.isWifiEnabled = isWifiEnabled;
     }
 }

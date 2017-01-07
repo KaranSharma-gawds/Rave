@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import excal.rave.R;
 public class ReceiverForWifi extends BroadcastReceiver {
     WifiP2pManager manager;
     WifiP2pManager.Channel channel;
-    Party activity;
+    AppCompatActivity activity;
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     private WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
@@ -39,18 +40,12 @@ public class ReceiverForWifi extends BroadcastReceiver {
             }
         }
     };
-    public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, Donor activity) {
+    public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, AppCompatActivity activity) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.activity = activity;
 
-    }
-    public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, Reciever activity) {
-        super();
-        this.manager = manager;
-        this.channel = channel;
-        this.activity = activity;
     }
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -58,11 +53,12 @@ public class ReceiverForWifi extends BroadcastReceiver {
         if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
             // Determine if Wifi P2P mode is enabled or not, alert
             // the Activity.
+
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
-                activity.setIsWifiP2pEnabled(true);
+                ((MainActivity)activity).setIsWifiP2pEnabled(true);
             } else {
-                activity.setIsWifiP2pEnabled(false);
+                ((MainActivity)activity).setIsWifiP2pEnabled(false);
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
@@ -81,8 +77,9 @@ public class ReceiverForWifi extends BroadcastReceiver {
             // that.
 
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-            DeviceListFragment fragment = (DeviceListFragment) activity.getFragmentManager().findFragmentById(R.id.frag_list);
-            fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
+
+            /*DeviceListFragment fragment = (DeviceListFragment) activity.getFragmentManager().findFragmentById(R.id.frag_list);
+            fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));*/
         }
     }
 }
