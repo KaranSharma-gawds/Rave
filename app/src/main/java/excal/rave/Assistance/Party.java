@@ -17,11 +17,8 @@ public class Party {
     int pic;
     int currentSong;
     int nextSong;
-    boolean isWifiEnabled;
-    public void setIsWifiP2pEnabled(boolean isWifiEnabled) {
-        this.isWifiEnabled = isWifiEnabled;
-    }
-    public FragmentManager getFragmentManager() {
+
+    /*public FragmentManager getFragmentManager() {
         return new FragmentManager() {
             @Override
             public FragmentTransaction beginTransaction() {
@@ -118,5 +115,5 @@ public class Party {
 
             }
         };
-    }
+    }*/
 }
