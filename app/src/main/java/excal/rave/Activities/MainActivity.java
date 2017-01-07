@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
     WifiP2pManager mManager;
     String role;
     boolean isWifiEnabled;
+    public void setIsWifiP2pEnabled(boolean isWifiEnabled) {
+        this.isWifiEnabled = isWifiEnabled;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,20 +44,20 @@ public class MainActivity extends AppCompatActivity {
 
         Intent fromMain2Activity = getIntent();
         role = fromMain2Activity.getStringExtra("ROLE");
-
+        registerReceiver(new ReceiverForWifi(mManager,mChannel,this),intentFilter);
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
+        WifiP2pServiceDiscoveryHelper helper = new WifiP2pServiceDiscoveryHelper(mChannel,MainActivity.this);
+        helper.startRegistration();
 
-        WifiP2pServiceDiscoveryHelper helper = new WifiP2pServiceDiscoveryHelper(mChannel,mManager,this);
     }
 
-    @Override
-    protected void onResume() {
+    /*protected void onResume() {
         super.onResume();
-        registerReceiver(new ReceiverForWifi(mManager,mChannel,this),intentFilter);
-    }
+        //if(role.equals("Master")){
 
-    public void setIsWifiP2pEnabled(boolean isWifiEnabled) {
-        this.isWifiEnabled = isWifiEnabled;
-    }
+        *//*} else if(role.equals("SLAVE")){
+            registerReceiver(new ReceiverForWifi(mManager,mChannel,this),intentFilter);
+        }*//*
+    }*/
 }
