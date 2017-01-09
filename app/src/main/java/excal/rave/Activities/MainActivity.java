@@ -4,12 +4,18 @@ import android.Manifest;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import excal.rave.Assistance.BroadcastReceiverforWifi;
@@ -24,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     String role;
     boolean isWifiEnabled;
     BroadcastReceiverforWifi receiver;
+    Button getMusic;
+    private String TAG = "";
+
     public void setIsWifiP2pEnabled(boolean isWifiEnabled) {
         this.isWifiEnabled = isWifiEnabled;
     }
@@ -40,51 +49,13 @@ public class MainActivity extends AppCompatActivity {
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
-
-        /*if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_WIFI_STATE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_WIFI_STATE)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_WIFI_STATE},
-                        1);
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.CHANGE_WIFI_STATE},
-                        2);
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.INTERNET},
-                        3);
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_WIFI_STATE},
-                        1);
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.CHANGE_WIFI_STATE},
-                        2);
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.INTERNET},
-                        3);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
+        getMusic = (Button) findViewById(R.id.button);
+        getMusic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bring_music();
             }
-        }*/
-        seekPermission();
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE);
-        Toast.makeText(this,"Permission "+permissionCheck,Toast.LENGTH_LONG).show();
-
+        });
         /*Intent fromMain2Activity = getIntent();
         role = fromMain2Activity.getStringExtra("ROLE");
         registerReceiver(new ReceiverForWifi(mManager,mChannel,this),intentFilter);
@@ -92,14 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    /*protected void onResume() {
-        super.onResume();
-        //if(role.equals("Master")){
-
-        *//*} else if(role.equals("SLAVE")){
-            registerReceiver(new ReceiverForWifi(mManager,mChannel,this),intentFilter);
-        }*//*
-    }*/
     @Override
     public void onResume() {
         super.onResume();
@@ -153,6 +116,38 @@ public class MainActivity extends AppCompatActivity {
                 new String[]{Manifest.permission.INTERNET},
                 3);
         Toast.makeText(this, "seek called", Toast.LENGTH_LONG).show();
+    }
+
+    //To bring music from default music app
+    public void bring_music()
+    {
+        String[] proj = {MediaStore.Audio.Media.DATA};
+        Uri tempPlaylistURI = MediaStore.Audio.Playlists.INTERNAL_CONTENT_URI;
+
+        // In the next line 'this' points to current Activity.
+        // If you want to use the same code in other java file then activity,
+        // then use an instance of any activity in place of 'this'.
+
+        Cursor playListCursor= this.managedQuery(tempPlaylistURI, proj, null,null,null);
+
+        if(playListCursor == null){
+            Toast.makeText(this,"Not having any Playlist on phone ",Toast.LENGTH_LONG).show();
+            return;//don't have list on phone
+        }
+        System.gc();
+        String playListName = null;
+        Toast.makeText(this,"CREATING AND DISPLAYING LIST OF ALL CREATED PLAYLIST ",Toast.LENGTH_LONG).show();
+
+        for(int i = 0; i <playListCursor.getCount() ; i++)
+        {
+            playListCursor.moveToNext();
+            playListName = playListCursor.getString(playListCursor.getColumnIndex("name"));
+            Log.d(TAG,"> " + i + "  : " + playListName );
+        }
+
+        if(playListCursor != null)
+            playListCursor.close();
+
     }
 }
 
