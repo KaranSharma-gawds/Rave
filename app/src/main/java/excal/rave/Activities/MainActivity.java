@@ -155,4 +155,3 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "seek called", Toast.LENGTH_LONG).show();
     }
 }
-
