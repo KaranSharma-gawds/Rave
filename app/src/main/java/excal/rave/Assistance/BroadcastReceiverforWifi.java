@@ -19,41 +19,18 @@ import excal.rave.R;
  * Created by Karan on 02-01-2017.
  */
 
-public class ReceiverForWifi extends BroadcastReceiver {
+public class BroadcastReceiverforWifi extends BroadcastReceiver {
     WifiP2pManager manager;
     WifiP2pManager.Channel channel;
     AppCompatActivity activity;
 
-    private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
-    private WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
-        @Override
-        public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
-            List<WifiP2pDevice> refreshedPeers = (List<WifiP2pDevice>) wifiP2pDeviceList.getDeviceList();
-            if(!refreshedPeers.equals(peers)){
-                peers.clear();
-                peers.addAll(refreshedPeers);
-                /*TODO: do something about the new peers*/
-
-            }
-
-            if(peers.size() == 0) {
-               // Toast.makeText(/*TODO: put context*/,"no devices found",Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
-    /*public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, Donor activity) {
-        super();
-        this.manager = manager;
-        this.channel = channel;
-        this.activity = activity;
-
-    }*/
-    public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, AppCompatActivity activity) {
+    public BroadcastReceiverforWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, AppCompatActivity activity) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.activity = activity;
     }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -63,8 +40,10 @@ public class ReceiverForWifi extends BroadcastReceiver {
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 ((MainActivity) activity).setIsWifiP2pEnabled(true);
+                Toast.makeText(context,"p2P IS ON",Toast.LENGTH_LONG).show();
             } else {
                 ((MainActivity) activity).setIsWifiP2pEnabled(false);
+                Toast.makeText(context,"p2P IS Off",Toast.LENGTH_LONG).show();
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
@@ -87,4 +66,23 @@ public class ReceiverForWifi extends BroadcastReceiver {
             fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));*/
         }
     }
+    private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
+    private WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
+        @Override
+        public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
+            List<WifiP2pDevice> refreshedPeers = (List<WifiP2pDevice>) wifiP2pDeviceList.getDeviceList();
+            if(!refreshedPeers.equals(peers)){
+                peers.clear();
+                peers.addAll(refreshedPeers);
+                /*TODO: do something about the new peers*/
+
+            }
+
+            if(peers.size() == 0) {
+                Toast.makeText(activity.getApplicationContext(), "No devices found", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 }
+
+
