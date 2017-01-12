@@ -10,6 +10,7 @@ import excal.rave.R;
 
 public class Main2Activity extends AppCompatActivity {
     Button createParty, joinParty;
+    private static int partyCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +22,7 @@ public class Main2Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 createGroupIntent.putExtra("ROLE","MASTER");
+                reseting();
                 startActivity(createGroupIntent);
             }
         });
@@ -31,6 +33,12 @@ public class Main2Activity extends AppCompatActivity {
                 startActivity(createGroupIntent);
             }
         });
+    }
+
+    private void reseting() {
+        partyCount++;
+        if(partyCount>1)
+            Party.closeSockets();
     }
 
 }

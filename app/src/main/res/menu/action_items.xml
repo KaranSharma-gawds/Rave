@@ -12,4 +12,10 @@
         android:icon="@drawable/ic_action_discover"
         android:title="@string/discover_peers_button"
         app:showAsAction="ifRoom|withText" />
+
+    <item
+        android:id="@+id/noOfClients"
+        android:title="No of Clients" />
+
+
 </menu>

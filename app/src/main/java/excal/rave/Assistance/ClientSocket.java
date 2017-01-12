@@ -1,5 +1,6 @@
 package excal.rave.Assistance;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Environment;
@@ -7,6 +8,7 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,13 +25,14 @@ import excal.rave.R;
  */
 
 public class ClientSocket implements Runnable {
+    private String Tag = "ClientSocket";
     private String serverAddress;
-    private Context context;
+    private Activity activity;
     private static final int SOCKET_TIMEOUT = 5000;
 
-    public ClientSocket(String hostAddress, Context c) {
+    public ClientSocket(String hostAddress, Activity act) {
         serverAddress =  hostAddress;
-        context = c;
+        activity = act;
     }
 
     @Override
@@ -40,27 +43,40 @@ public class ClientSocket implements Runnable {
             socket.connect(new InetSocketAddress(serverAddress,DeviceDetailFragment.port_no), SOCKET_TIMEOUT);
             DeviceDetailFragment.MyIpAddress_client = socket.getLocalAddress().getHostAddress();
 //            DeviceDetailFragment.setIpOnView();
+            generateToast("MyIpAddress: "+DeviceDetailFragment.MyIpAddress_client);
+
+            DataInputStream din=new DataInputStream(socket.getInputStream());
+            String s=din.readUTF();
+            Log.v(Tag,"--"+s);
+            generateToast(s);
+
 
             while (true){
-                InputStream istream = socket.getInputStream();
-                if(istream.available()!=0){
-                    final File f = new File(Environment.getExternalStorageDirectory() + "/"
-                            + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis() + ".jpg");
-
-                    File dirs = new File(f.getParent());
-                    if (!dirs.exists())
-                        dirs.mkdirs();
-                    f.createNewFile();
-
-                    Log.d(Party.TAG, "server: copying files " + f.toString());
-                    Toast.makeText(context, "receiving files", Toast.LENGTH_SHORT).show();
-                    DeviceDetailFragment.copyFile(istream,new FileOutputStream(f));
+                s=din.readUTF();
+                Log.v(Tag,s);
+                if(s.equals("position")){
+                    new SetMusicPositionAsyncTask(socket).execute();
+                }else if(s.equals("musicFile")){
+                    new SaveMusicAsyncTask(socket,activity).execute();
+                }else{
+                    Log.v(Tag,"--unexpected data: "+s);
                 }
-
             }
+
+//            new SaveMusicAsyncTask(socket,activity).execute();
+
+
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void generateToast(final String str){
+        activity.runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(activity.getApplicationContext(), str!=null?str:"null", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

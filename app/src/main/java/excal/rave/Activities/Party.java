@@ -1,5 +1,6 @@
 package excal.rave.Activities;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.ChannelListener;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -18,14 +20,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
 
 import excal.rave.Assistance.DeviceDetailFragment;
 import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Assistance.ReceiverForWifi;
+import excal.rave.Assistance.ServerSocketSingleton;
 import excal.rave.R;
 
 /**
@@ -38,7 +46,7 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
     int currentSong;
     int nextSong;
 
-    public static final String TAG = "wifidirectdemo";
+    public static final String TAG = "PartyActivity";
     private WifiP2pManager manager;
     private boolean isWifiP2pEnabled = false;
     private Channel channel;
@@ -46,7 +54,8 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
     public static String role=null;
     private final IntentFilter intentFilter = new IntentFilter();
     private BroadcastReceiver receiver = null;
-    Context thisActivity;
+    public static Activity thisActivity;
+    public static Context thisContext;
     WifiP2pGroup group;
 
     boolean isWifiEnabled;
@@ -60,7 +69,8 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        thisActivity=getApplicationContext();
+        thisContext=getApplicationContext();
+        thisActivity=Party.this;
         Intent fromMain2Activity = getIntent();
         role = fromMain2Activity.getStringExtra("ROLE");
 
@@ -102,10 +112,41 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
     protected void onDestroy() {
         super.onDestroy();
         if(DeviceDetailFragment.getClientsThread!=null) {
-            DeviceDetailFragment.getClientsThread.stop();
+            DeviceDetailFragment.getClientsThread.interrupt();
         }
         if(DeviceDetailFragment.connectToServerThread!=null){
-            DeviceDetailFragment.connectToServerThread.stop();
+            DeviceDetailFragment.connectToServerThread.interrupt();
+        }
+        if(role.equals("MASTER"))
+            closeSockets();
+
+    }
+
+    public static void closeSockets() {
+        ServerSocket s = ServerSocketSingleton.getSocket();
+        if(s!=null && !s.isClosed()){
+            try {
+                s.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        ServerSocketSingleton.setIsServerSocketCreated(false);
+
+        try{
+            ArrayList<Socket> list = DeviceDetailFragment.client_list;
+            for(Socket socket : list) {
+                if (socket != null && !socket.isClosed()) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            list.clear();
+        }catch (Exception e){
+            Log.d(Party.TAG,e.toString());
         }
 
     }
@@ -164,7 +205,7 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
 
             case R.id.atn_direct_discover:
                 if (!isWifiP2pEnabled) {
-                    Toast.makeText(thisActivity, R.string.p2p_off_warning,Toast.LENGTH_SHORT).show();
+                    Toast.makeText(thisContext, R.string.p2p_off_warning,Toast.LENGTH_SHORT).show();
                     return true;
                 }
                 final DeviceListFragment fragment = (DeviceListFragment) getFragmentManager()
@@ -173,15 +214,22 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
                 manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(thisActivity, "Discovery Initiated",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(thisContext, "Discovery Initiated",Toast.LENGTH_SHORT).show();
                         //Broadcast Action WIFI_P2P_PEERS_CHANGED_ACTION is initiated
                     }
 
                     @Override
                     public void onFailure(int reasonCode) {
-                        Toast.makeText(thisActivity, "Discovery Failed : " + reasonCode,Toast.LENGTH_SHORT).show();
+                        Toast.makeText(thisContext, "Discovery Failed : " + reasonCode,Toast.LENGTH_SHORT).show();
                     }
                 });
+                return true;
+            
+            case R.id.noOfClients:
+                if(role.equals("MASTER"))
+                    Toast.makeText(thisContext, "No of clients connected: "+DeviceDetailFragment.client_list.size(), Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(thisContext, "Beware! You are only a client..", Toast.LENGTH_SHORT).show();
                 return true;
 
             default:

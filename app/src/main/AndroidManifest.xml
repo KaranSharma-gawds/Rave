@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Google Play filtering -->
     <uses-feature android:name="android.hardware.wifi.direct" android:required="true"/>
@@ -25,7 +26,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" /> <!-- Main2Activity should be launcher..? -->
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".Activities.Donor" />
@@ -35,6 +36,7 @@
 
         <!-- Used for transferring files  after a successful connection -->
         <service android:enabled="true" android:name=".Assistance.FileTransferService" />
+        <service android:enabled="true" android:name=".Assistance.SendToClientService" />
     </application>
 
 </manifest>

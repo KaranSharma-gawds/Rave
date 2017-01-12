@@ -41,6 +41,7 @@ import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Activities.Party;
 import excal.rave.Assistance.IpChecker;
 
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -59,13 +60,13 @@ import excal.rave.R;
  * i.e. setting up network connection and transferring data.
  */
 public class DeviceDetailFragment extends Fragment implements ConnectionInfoListener {
-
+    private static String Tag = "DeviceDetailFragment";
     protected static final int CHOOSE_FILE_RESULT_CODE = 20;
     private static View mContentView = null;
     private WifiP2pDevice device;
     private WifiP2pInfo info;
     private String myIP;
-    public static int port_no = 8981;
+    public static int port_no = 8980;
     private IpChecker myIpCheckerThread = null;
     public String host_address;
     ProgressDialog progressDialog = null;
@@ -142,7 +143,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         // FileTransferService.
         TextView statusText = (TextView) mContentView.findViewById(R.id.status_text);
         statusText.setText("Sending: " + uri);
-        Log.d(Party.TAG, "Intent----------- " + uri);
+        Log.d(Tag, "Intent----------- " + uri);
         Intent serviceIntent = new Intent(getActivity(), FileTransferService.class);
         serviceIntent.setAction(FileTransferService.ACTION_SEND_FILE);
         serviceIntent.putExtra(FileTransferService.EXTRAS_FILE_PATH, uri.toString());
@@ -156,13 +157,25 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         // SendToClientService
         if(requestCode == CHOOSE_FILE_RESULT_CODE){
             for(Socket socket : client_list){
-                Toast.makeText(getActivity().getApplicationContext(), "Sending to: "+socket.getLocalAddress().getHostAddress(), Toast.LENGTH_SHORT).show();
-                Intent clientIntent = new Intent(getActivity(), SendToClientService.class);
-                clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
-                clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
-                SocketSingleton.setSocket(socket);
-//        clientIntent.putExtra(SendToClientService.EXTRAS_SERVER_TO_CLIENT_SOCKET, socket);
-                getActivity().startService(clientIntent);
+                if(socket!=null && socket.isConnected()){
+                    OutputStream ostream = null;
+                    try {
+                        ostream = socket.getOutputStream();
+                        DataOutputStream dout=new DataOutputStream(ostream);
+                        dout.writeUTF("musicFile");
+                        dout.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Intent clientIntent = new Intent(getActivity(), SendToClientService.class);
+                    clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
+                    clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
+                    SocketSingleton.setSocket(socket);
+                    getActivity().startService(clientIntent);
+                }else{
+                    client_list.remove(socket);
+                    Log.v(Tag,"--a socket removed");
+                }
             }
         }else{
             Toast.makeText(getActivity().getApplicationContext(), "No image selected", Toast.LENGTH_SHORT).show();
@@ -229,9 +242,13 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             // master sends data.. it can remember all the sockets for repetitive sending
 
             //accepting client requests
-            GetClients getClients = new GetClients();
-            getClientsThread = new Thread(getClients);
-            getClientsThread.start();
+            if(!ServerSocketSingleton.getIsServerSocketCreated()){
+                //to check that Server is created only once
+                GetClients getClients = new GetClients();
+                getClientsThread = new Thread(getClients);
+                getClientsThread.start();
+                ServerSocketSingleton.setIsServerSocketCreated(true);
+            }
 
         } else{
             /*
@@ -242,7 +259,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
 
 
             //create socket to server
-            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),getActivity());
+            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),Party.thisActivity);
             connectToServerThread = new Thread(clientSocket);
             connectToServerThread.start();
 
@@ -276,9 +293,9 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         protected String doInBackground(Void... params) {
             try {
                 ServerSocket serverSocket = new ServerSocket(8988);
-                Log.d(Party.TAG, "Server: Socket opened");
+                Log.d(Tag, "Server: Socket opened");
                 Socket client = serverSocket.accept();
-                Log.d(Party.TAG, "Server: connection done");
+                Log.d(Tag, "Server: connection done");
                 final File f = new File(Environment.getExternalStorageDirectory() + "/"
                         + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis()
                         + ".jpg");
@@ -288,14 +305,14 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
                     dirs.mkdirs();
                 f.createNewFile();
 
-                Log.d(Party.TAG, "server: copying files " + f.toString());
+                Log.d(Tag, "server: copying files " + f.toString());
                 InputStream inputstream = client.getInputStream();
                 copyFile(inputstream, new FileOutputStream(f));
                 serverSocket.close();
                 //need to accept data even after this... do something
                 return f.getAbsolutePath();
             } catch (IOException e) {
-                Log.e(Party.TAG, e.getMessage());
+                Log.e(Tag, e.getMessage());
                 return null;
             }
         }
@@ -333,22 +350,22 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         try {
             while ((len = inputStream.read(buf)) != -1) {
                 out.write(buf, 0, len);
-
             }
-            out.close();
-            inputStream.close();
-            Log.d(Party.TAG, (Party.role.equals("MASTER"))? "file sent to client" : "file received from server" );
+
+            Log.v(Tag,"--done");
+            if(Party.role.equals("MASTER"))
+                inputStream.close();
+            if(Party.role.equals("SLAVE"))
+                out.close();
         } catch (IOException e) {
-            Log.d(Party.TAG, e.toString());
+            Log.d(Tag, e.toString());
             return false;
         }
+//            out.close();
+//            inputStream.close();
+        Log.d(Tag, "copyFile: "+((Party.role.equals("MASTER"))? "file sent to client" : "file received from server") );
         return true;
     }
 
-    public static void setIpOnView(){
-        // creating error calling from thread.. view cant be touched
-        ((TextView) mContentView.findViewById(R.id.device_info)).setText("My IP :-- "+MyIpAddress_client);
-
-    }
 
 }
