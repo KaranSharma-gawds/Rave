@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import excal.rave.R;
+import excal.rave.Activities.Party;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 
 /**
@@ -30,6 +31,10 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
     ProgressDialog progressDialog = null;
     View mContentView = null;
     private WifiP2pDevice device;
+
+    public DeviceListFragment(){
+
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {

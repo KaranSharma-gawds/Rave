@@ -33,9 +33,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
+import excal.rave.Activities.Party;
+import excal.rave.Assistance.IpChecker;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,8 +48,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import excal.rave.R;
+
 
 /**
  * A fragment that manages a particular peer and allows interaction with device
@@ -54,10 +61,19 @@ import excal.rave.R;
 public class DeviceDetailFragment extends Fragment implements ConnectionInfoListener {
 
     protected static final int CHOOSE_FILE_RESULT_CODE = 20;
-    private View mContentView = null;
+    private static View mContentView = null;
     private WifiP2pDevice device;
     private WifiP2pInfo info;
+    private String myIP;
+    public static int port_no = 8981;
+    private IpChecker myIpCheckerThread = null;
+    public String host_address;
     ProgressDialog progressDialog = null;
+    public static ArrayList<Socket> client_list = new ArrayList<>();
+    public static Socket MyClientSocket = null;
+    public static String MyIpAddress_client = null;
+    public static Thread getClientsThread = null;
+    public static Thread connectToServerThread = null;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -72,6 +88,12 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             public void onClick(View view) {
                 WifiP2pConfig config = new WifiP2pConfig();
                 config.deviceAddress = device.deviceAddress;
+                if(Party.role.equals("SLAVE")){
+                    config.groupOwnerIntent = 0;
+                }else{
+                    config.groupOwnerIntent = 15;
+                }
+
                 config.wps.setup = WpsInfo.PBC;
                 if (progressDialog != null && progressDialog.isShowing()) {
                     progressDialog.dismiss();
@@ -87,6 +109,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
 //                        }
                 );
                 ((DeviceActionListener) getActivity()).connect(config);
+                /* Second way: could call createGroup() to make the current device as the group owner*/
             }
         });
 
@@ -102,7 +125,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             public void onClick(View view) {
                 // Allow user to pick an image from Gallery or other registered apps
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-//                intent.setType("image/*");
+                intent.setType("image/*");
                 startActivityForResult(intent, CHOOSE_FILE_RESULT_CODE);
             }
         });
@@ -112,20 +135,39 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Uri uri = data.getData();
+
+       /*
         // User has picked an image. Transfer it to group owner i.e peer using
         // FileTransferService.
-        Uri uri = data.getData();
         TextView statusText = (TextView) mContentView.findViewById(R.id.status_text);
         statusText.setText("Sending: " + uri);
         Log.d(Party.TAG, "Intent----------- " + uri);
         Intent serviceIntent = new Intent(getActivity(), FileTransferService.class);
         serviceIntent.setAction(FileTransferService.ACTION_SEND_FILE);
         serviceIntent.putExtra(FileTransferService.EXTRAS_FILE_PATH, uri.toString());
-        serviceIntent.putExtra(FileTransferService.EXTRAS_HOST_ADDRESS, device.deviceAddress);
-                //info.groupOwnerAddress.getHostAddress());
-        serviceIntent.putExtra(FileTransferService.EXTRAS_HOST_PORT, 8988);
+        serviceIntent.putExtra(FileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,info.groupOwnerAddress.getHostAddress());
+        serviceIntent.putExtra(FileTransferService.EXTRAS_HOST_PORT, port_no);
         getActivity().startService(serviceIntent);
         //multiple receivers will be there, so all the party joiners must get data from here..
+        */
+
+        // Host is to send some data to all clients
+        // SendToClientService
+        if(requestCode == CHOOSE_FILE_RESULT_CODE){
+            for(Socket socket : client_list){
+                Toast.makeText(getActivity().getApplicationContext(), "Sending to: "+socket.getLocalAddress().getHostAddress(), Toast.LENGTH_SHORT).show();
+                Intent clientIntent = new Intent(getActivity(), SendToClientService.class);
+                clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
+                clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
+                SocketSingleton.setSocket(socket);
+//        clientIntent.putExtra(SendToClientService.EXTRAS_SERVER_TO_CLIENT_SOCKET, socket);
+                getActivity().startService(clientIntent);
+            }
+        }else{
+            Toast.makeText(getActivity().getApplicationContext(), "No image selected", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     /**
@@ -174,26 +216,36 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
 
         // InetAddress from WifiP2pInfo struct.
         view = (TextView) mContentView.findViewById(R.id.device_info);
-        view.setText("Group Owner IP - " + info.groupOwnerAddress.getHostAddress());
+        view.setText("Group Owner IP - " + info.groupOwnerAddress.getHostAddress()+"\n");
 
-        /* This is creating a groupOwner based on a device performance...
+        // This is creating a groupOwner based on a device performance...
         // After the group negotiation, we assign the group owner as the file
         // server. The file server is single threaded, single connection server socket.
-        if (info.groupFormed && info.isGroupOwner) {
-        } else if (info.groupFormed) {
-            // The other device acts as the client. In this case, we enable the
-            // get file button.
-        }
-        */
 
         if(Party.role.equals("MASTER")){
             // make it send data as he is hosting the party
             mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
             ((TextView) mContentView.findViewById(R.id.status_text)).setText(getResources().getString(R.string.host_text));
+            // master sends data.. it can remember all the sockets for repetitive sending
+
+            //accepting client requests
+            GetClients getClients = new GetClients();
+            getClientsThread = new Thread(getClients);
+            getClientsThread.start();
 
         } else{
+            /*
             //make it receive data as it wants to join the party
             new FileServerAsyncTask(getActivity(), mContentView.findViewById(R.id.status_text)).execute();
+            */
+
+
+
+            //create socket to server
+            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),getActivity());
+            connectToServerThread = new Thread(clientSocket);
+            connectToServerThread.start();
+
         }
 
         // hide the connect button
@@ -206,6 +258,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
      * the stream.
      */
     public static class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
+        //to receive
 
         private Context context;
         private TextView statusText;
@@ -284,11 +337,18 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             }
             out.close();
             inputStream.close();
+            Log.d(Party.TAG, (Party.role.equals("MASTER"))? "file sent to client" : "file received from server" );
         } catch (IOException e) {
             Log.d(Party.TAG, e.toString());
             return false;
         }
         return true;
+    }
+
+    public static void setIpOnView(){
+        // creating error calling from thread.. view cant be touched
+        ((TextView) mContentView.findViewById(R.id.device_info)).setText("My IP :-- "+MyIpAddress_client);
+
     }
 
 }

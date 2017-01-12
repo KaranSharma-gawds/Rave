@@ -1,14 +1,11 @@
 package excal.rave.Activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import excal.rave.Assistance.Party;
 import excal.rave.R;
 
 public class Main2Activity extends AppCompatActivity {

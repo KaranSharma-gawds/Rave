@@ -30,7 +30,8 @@
         </activity>
         <activity android:name=".Activities.Donor" />
         <activity android:name=".Activities.Receiver"></activity>
-        <activity android:name=".Assistance.Party"></activity>
+        <activity android:name=".Activities.Party"></activity>
+
 
         <!-- Used for transferring files  after a successful connection -->
         <service android:enabled="true" android:name=".Assistance.FileTransferService" />

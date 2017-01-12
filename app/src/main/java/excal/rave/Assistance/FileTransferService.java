@@ -16,16 +16,19 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import excal.rave.Activities.Party;
+
 /**
  * A service that process each file transfer request i.e Intent by opening a
  * socket connection with the WiFi Direct Group Owner and writing the file
  */
 public class FileTransferService extends IntentService {
 
-    private static final int SOCKET_TIMEOUT = 5000000;
-    public static final String ACTION_SEND_FILE = "com.example.android.wifidirect.SEND_FILE";
+    private static final int SOCKET_TIMEOUT = 5000;
+    public static final String ACTION_SEND_FILE = "excal.rave.SEND_FILE";
     public static final String EXTRAS_FILE_PATH = "file_url";
     public static final String EXTRAS_HOST_ADDRESS = "go_host";
+    public static final String EXTRAS_GROUP_OWNER_ADDRESS = "go_host";
     public static final String EXTRAS_HOST_PORT = "go_port";
 
     public FileTransferService(String name) {
@@ -42,11 +45,15 @@ public class FileTransferService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
+//        String group_owner_host;
+        String host;
 
         Context context = getApplicationContext();
         if (intent.getAction().equals(ACTION_SEND_FILE)) {
             String fileUri = intent.getExtras().getString(EXTRAS_FILE_PATH);
-            String host = intent.getExtras().getString(EXTRAS_HOST_ADDRESS);
+            host = intent.getExtras().getString(EXTRAS_GROUP_OWNER_ADDRESS);
+//            group_owner_host = intent.getExtras().getString(EXTRAS_GROUP_OWNER_ADDRESS);
+
             Socket socket = new Socket();
             int port = intent.getExtras().getInt(EXTRAS_HOST_PORT);
 
@@ -54,6 +61,7 @@ public class FileTransferService extends IntentService {
                 Log.d(Party.TAG, "Opening client socket - ");
                 socket.bind(null);
                 socket.connect((new InetSocketAddress(host, port)), SOCKET_TIMEOUT);
+                String localAddress = socket.getLocalAddress().getHostAddress();
 
                 Log.d(Party.TAG, "Client socket - " + socket.isConnected());
                 OutputStream stream = socket.getOutputStream();

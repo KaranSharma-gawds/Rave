@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.util.Log;
 
 import excal.rave.R;
+import  excal.rave.Activities.Party;
 
 /**
  * Created by Karan on 02-01-2017.
@@ -19,13 +21,15 @@ public class ReceiverForWifi extends BroadcastReceiver {
     WifiP2pManager.Channel channel;
     Party activity;
 
-    public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, Party activity) {
+    public ReceiverForWifi(WifiP2pManager manager, Channel channel, Party activity) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.activity = activity;
 
     }
+
+
     /*public ReceiverForWifi(WifiP2pManager manager, WifiP2pManager.Channel channel, Reciever activity) {
         super();
         this.manager = manager;
