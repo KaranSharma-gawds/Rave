@@ -73,6 +73,7 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
         thisActivity=Party.this;
         Intent fromMain2Activity = getIntent();
         role = fromMain2Activity.getStringExtra("ROLE");
+//        resetData();
 
         // add necessary intent values to be matched.
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -168,15 +169,19 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
     }
 
     public void resetData() {
-        DeviceListFragment fragmentList = (DeviceListFragment) getFragmentManager()
-                .findFragmentById(R.id.frag_list);
-        DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getFragmentManager()
-                .findFragmentById(R.id.frag_detail);
-        if (fragmentList != null) {
-            fragmentList.clearPeers();
+        if(DeviceListFragment.isListSet){
+            DeviceListFragment fragmentList = (DeviceListFragment) getFragmentManager()
+                    .findFragmentById(R.id.frag_list);
+            if (fragmentList != null) {
+                fragmentList.clearPeers();
+            }
         }
-        if (fragmentDetails != null) {
-            fragmentDetails.resetViews();
+        if(DeviceDetailFragment.isDeatilSet){
+            DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getFragmentManager()
+                    .findFragmentById(R.id.frag_detail);
+            if (fragmentDetails != null) {
+                fragmentDetails.resetViews();
+            }
         }
     }
 

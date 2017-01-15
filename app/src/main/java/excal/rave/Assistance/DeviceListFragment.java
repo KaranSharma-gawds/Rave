@@ -31,6 +31,7 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
     ProgressDialog progressDialog = null;
     View mContentView = null;
     private WifiP2pDevice device;
+    public static boolean isListSet = false;
 
     public DeviceListFragment(){
 
@@ -40,7 +41,7 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         this.setListAdapter(new WiFiPeerListAdapter(getActivity(), R.layout.row_devices, peers));
-
+        isListSet = true;
     }
 
     @Override
@@ -159,8 +160,10 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
 
 
     public void clearPeers() {
-        peers.clear();
-        ((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
+        if(peers!=null){
+            peers.clear();
+            ((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
+        }
     }
 
     /**

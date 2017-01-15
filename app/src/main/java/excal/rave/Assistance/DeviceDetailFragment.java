@@ -18,7 +18,6 @@ package excal.rave.Assistance;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.net.wifi.WpsInfo;
@@ -26,31 +25,24 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager.ConnectionInfoListener;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Activities.Party;
-import excal.rave.Assistance.IpChecker;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Calendar;
 
 import excal.rave.R;
 
@@ -65,16 +57,14 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
     private static View mContentView = null;
     private WifiP2pDevice device;
     private WifiP2pInfo info;
-    private String myIP;
     public static int port_no = 8980;
-    private IpChecker myIpCheckerThread = null;
-    public String host_address;
     ProgressDialog progressDialog = null;
     public static ArrayList<Socket> client_list = new ArrayList<>();
     public static Socket MyClientSocket = null;
     public static String MyIpAddress_client = null;
     public static Thread getClientsThread = null;
     public static Thread connectToServerThread = null;
+    public static boolean isDeatilSet = false;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -84,6 +74,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mContentView = inflater.inflate(R.layout.device_detail, null);
+        isDeatilSet = true;
         mContentView.findViewById(R.id.btn_connect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -126,7 +117,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             public void onClick(View view) {
                 // Allow user to pick an image from Gallery or other registered apps
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
+                intent.setType("audio/*");
                 startActivityForResult(intent, CHOOSE_FILE_RESULT_CODE);
             }
         });
@@ -138,37 +129,15 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Uri uri = data.getData();
 
-       /*
-        // User has picked an image. Transfer it to group owner i.e peer using
-        // FileTransferService.
-        TextView statusText = (TextView) mContentView.findViewById(R.id.status_text);
-        statusText.setText("Sending: " + uri);
-        Log.d(Tag, "Intent----------- " + uri);
-        Intent serviceIntent = new Intent(getActivity(), FileTransferService.class);
-        serviceIntent.setAction(FileTransferService.ACTION_SEND_FILE);
-        serviceIntent.putExtra(FileTransferService.EXTRAS_FILE_PATH, uri.toString());
-        serviceIntent.putExtra(FileTransferService.EXTRAS_GROUP_OWNER_ADDRESS,info.groupOwnerAddress.getHostAddress());
-        serviceIntent.putExtra(FileTransferService.EXTRAS_HOST_PORT, port_no);
-        getActivity().startService(serviceIntent);
-        //multiple receivers will be there, so all the party joiners must get data from here..
-        */
-
         // Host is to send some data to all clients
         // SendToClientService
         if(requestCode == CHOOSE_FILE_RESULT_CODE){
+            // for loop for all songs to be sent
             for(Socket socket : client_list){
                 if(socket!=null && socket.isConnected()){
-                    OutputStream ostream = null;
-                    try {
-                        ostream = socket.getOutputStream();
-                        DataOutputStream dout=new DataOutputStream(ostream);
-                        dout.writeUTF("musicFile");
-                        dout.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                     Intent clientIntent = new Intent(getActivity(), SendToClientService.class);
                     clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
+                    clientIntent.putExtra(SendToClientService.EXTRAS_MESSAGE_TYPE, "musicFile");
                     clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
                     SocketSingleton.setSocket(socket);
                     getActivity().startService(clientIntent);
@@ -177,6 +146,11 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
                     Log.v(Tag,"--a socket removed");
                 }
             }
+            /*try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }*/
         }else{
             Toast.makeText(getActivity().getApplicationContext(), "No image selected", Toast.LENGTH_SHORT).show();
         }
@@ -269,101 +243,46 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         mContentView.findViewById(R.id.btn_connect).setVisibility(View.GONE);
     }
 
-
-    /**
-     * A simple server socket that accepts connection and writes some data on
-     * the stream.
-     */
-    public static class FileServerAsyncTask extends AsyncTask<Void, Void, String> {
-        //to receive
-
-        private Context context;
-        private TextView statusText;
-
-        /**
-         * @param context
-         * @param statusText
-         */
-        public FileServerAsyncTask(Context context, View statusText) {
-            this.context = context;
-            this.statusText = (TextView) statusText;
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            try {
-                ServerSocket serverSocket = new ServerSocket(8988);
-                Log.d(Tag, "Server: Socket opened");
-                Socket client = serverSocket.accept();
-                Log.d(Tag, "Server: connection done");
-                final File f = new File(Environment.getExternalStorageDirectory() + "/"
-                        + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis()
-                        + ".jpg");
-
-                File dirs = new File(f.getParent());
-                if (!dirs.exists())
-                    dirs.mkdirs();
-                f.createNewFile();
-
-                Log.d(Tag, "server: copying files " + f.toString());
-                InputStream inputstream = client.getInputStream();
-                copyFile(inputstream, new FileOutputStream(f));
-                serverSocket.close();
-                //need to accept data even after this... do something
-                return f.getAbsolutePath();
-            } catch (IOException e) {
-                Log.e(Tag, e.getMessage());
-                return null;
-            }
-        }
-
-        /*
-         * (non-Javadoc)
-         * @see android.os.AsyncTask#onPostExecute(java.lang.Object)
-         */
-        @Override
-        protected void onPostExecute(String result) {
-            if (result != null) {
-                statusText.setText("File copied - " + result);
-                Intent intent = new Intent();
-                intent.setAction(android.content.Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.parse("file://" + result), "image/*");
-                context.startActivity(intent);
-            }
-
-        }
-
-        /*
-         * (non-Javadoc)
-         * @see android.os.AsyncTask#onPreExecute()
-         */
-        @Override
-        protected void onPreExecute() {
-            statusText.setText("Opening a server socket");
-        }
-
-    }
-
-    public static boolean copyFile(InputStream inputStream, OutputStream out) {
+    public static boolean copyFile(InputStream inputStream, OutputStream out, long fileSize) {
         byte buf[] = new byte[1024];
-        int len;
-        try {
-            while ((len = inputStream.read(buf)) != -1) {
-                out.write(buf, 0, len);
-            }
+        int bytesRead = 0, len;
 
-            Log.v(Tag,"--done");
-            if(Party.role.equals("MASTER"))
-                inputStream.close();
-            if(Party.role.equals("SLAVE"))
-                out.close();
-        } catch (IOException e) {
-            Log.d(Tag, e.toString());
-            return false;
-        }
+        try {
+            Calendar c;
+            long t=0;
+            int x=0;
+            while (bytesRead < fileSize && (len = inputStream.read(buf)) != -1 ) {
+                if(x==0){
+                    c= Calendar.getInstance();
+                    x=1;
+                    t=c.getTimeInMillis();
+                }
+                bytesRead+=len;
+                out.write(buf, 0, len);
+              //  Log.v(Tag,""+len);
+            }
+            Calendar c1= Calendar.getInstance();
+            long t1 = c1.getTimeInMillis();
+
+            Log.v(Tag,"--done "+(t1-t));
+            Log.v(Tag,"--bytesRead: "+bytesRead + " fileSize: "+fileSize);
+
+
 //            out.close();
 //            inputStream.close();
-        Log.d(Tag, "copyFile: "+((Party.role.equals("MASTER"))? "file sent to client" : "file received from server") );
+
+            if(Party.role.equals("MASTER")){
+                inputStream.close();
+                out.flush();
+            }
+            if(Party.role.equals("SLAVE")) {
+                out.close();
+            }
+        } catch (IOException e) {
+            Log.v(Tag, e.toString());
+            return false;
+        }
+        Log.v(Tag, "copyFile: "+((Party.role.equals("MASTER"))? "file sent to client" : "file received from server") );
         return true;
     }
 

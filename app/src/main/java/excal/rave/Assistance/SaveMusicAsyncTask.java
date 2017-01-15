@@ -7,7 +7,9 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,10 +27,14 @@ public class SaveMusicAsyncTask extends AsyncTask<Void, Void, String> {
     private String Tag = "SaveMusicAsyncTask";
     private Socket socket;
     private Activity activity;
+    private long fileSize;
+    private String fileName;
 
-    public SaveMusicAsyncTask(Socket socket, Activity activity) {
+    public SaveMusicAsyncTask(Socket socket, Activity activity, long fileSize, String fileName) {
         this.socket = socket;
         this.activity = activity;
+        this.fileSize = fileSize;
+        this.fileName = fileName;
     }
 
     @Override
@@ -40,37 +46,41 @@ public class SaveMusicAsyncTask extends AsyncTask<Void, Void, String> {
     protected String doInBackground(Void... voids) {
 
         InputStream istream = null;
+        boolean copied = false;
+        String path = null;
         try {
             istream = socket.getInputStream();
             final File f = new File(Environment.getExternalStorageDirectory() + "/Music/"+activity.getResources().getString(R.string.app_name)
-                   + "/rave-" + System.currentTimeMillis() + ".jpg");
-            //TODO: save as music mp3
+                    + "/" + fileName);
+//                   + "/rave-" + System.currentTimeMillis() + ".mp3");
+            path = f.toString();
 
             File dirs = new File(f.getParent());
             if (!dirs.exists())
                 dirs.mkdirs();
             f.createNewFile();
 
-            Log.v(Tag, "server: copying files " + f.toString());
-            boolean copied = DeviceDetailFragment.copyFile(istream,new FileOutputStream(f));
+            Log.v(Tag, "copying music file " + path);
+            copied = DeviceDetailFragment.copyFile(istream,new FileOutputStream(f), fileSize);
             Log.v(Tag,copied?"copied":"not copied");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return null;
+        return copied?path:"not copied";
     }
 
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-        // for viewing image
+        //
         if (result != null) {
             Log.v(Tag,"File copied - " + result);
-            Intent intent = new Intent();
+            /*Intent intent = new Intent();
             intent.setAction(android.content.Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse("file://" + result), "image/*");
-            activity.startActivity(intent);
+            activity.startActivity(intent);*/
+            Toast.makeText(activity, "music file saved: "+result, Toast.LENGTH_SHORT).show();
         }else{
             Log.v(Tag,"null result");
         }

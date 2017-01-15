@@ -42,29 +42,39 @@ public class ClientSocket implements Runnable {
             socket.bind(null);
             socket.connect(new InetSocketAddress(serverAddress,DeviceDetailFragment.port_no), SOCKET_TIMEOUT);
             DeviceDetailFragment.MyIpAddress_client = socket.getLocalAddress().getHostAddress();
-//            DeviceDetailFragment.setIpOnView();
             generateToast("MyIpAddress: "+DeviceDetailFragment.MyIpAddress_client);
 
             DataInputStream din=new DataInputStream(socket.getInputStream());
-            String s=din.readUTF();
-            Log.v(Tag,"--"+s);
-            generateToast(s);
+            String s = null;
+//            String s=din.readUTF();
+//            Log.v(Tag,"--"+s);
+//            generateToast(s);
 
 
             while (true){
                 s=din.readUTF();
-                Log.v(Tag,s);
+                Log.v(Tag,"received "+s);
                 if(s.equals("position")){
-                    new SetMusicPositionAsyncTask(socket).execute();
+                    s=din.readUTF();
+                    int position = Integer.parseInt(s);
+                    new SetMusicPositionAsyncTask(socket,position).execute();
                 }else if(s.equals("musicFile")){
-                    new SaveMusicAsyncTask(socket,activity).execute();
+                    //fileSize
+                    s=din.readUTF();
+                    long fileSize = Long.parseLong(s);
+                    //fileName
+                    s=din.readUTF();
+
+                    new SaveMusicAsyncTask(socket,activity,fileSize,s).execute();
+                }else if(s.equals("nextSong")){
+
                 }else{
                     Log.v(Tag,"--unexpected data: "+s);
                 }
             }
 
-//            new SaveMusicAsyncTask(socket,activity).execute();
 
+//            new SaveMusicAsyncTask(socket,activity).execute();
 
 
         } catch (IOException e) {

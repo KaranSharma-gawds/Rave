@@ -32,8 +32,8 @@ public class GetClients implements Runnable {
                 Socket socket = serverSocket.accept();
                 DeviceDetailFragment.client_list.add(socket);
                 DataOutputStream dout=new DataOutputStream(socket.getOutputStream());
-                dout.writeUTF("Hello from server");
-                dout.flush();
+//                dout.writeUTF("Hello from server");
+//                dout.flush();
 
                 Log.v(Tag,"--Client connected");
             }

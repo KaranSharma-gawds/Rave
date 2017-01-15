@@ -17,6 +17,7 @@ import  excal.rave.Activities.Party;
  */
 
 public class ReceiverForWifi extends BroadcastReceiver {
+    private static String Tag = "ReceiverForWifi";
     WifiP2pManager manager;
     WifiP2pManager.Channel channel;
     Party activity;
@@ -49,7 +50,7 @@ public class ReceiverForWifi extends BroadcastReceiver {
                 activity.setIsWifiP2pEnabled(false);
                 activity.resetData();
             }
-            Log.d(Party.TAG, "P2P state changed - " + state);
+            Log.v(Tag, "P2P state changed - " + state);
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
 
             // request available peers from the wifi p2p manager. This is an
@@ -60,7 +61,7 @@ public class ReceiverForWifi extends BroadcastReceiver {
                         .findFragmentById(R.id.frag_list));
                 // onPeersAvailable() is called
             }
-            Log.d(Party.TAG, "P2P peers changed");
+            Log.v(Tag, "P2P peers changed");
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Connection state changed!  We should probably do something about that.
             if (manager == null) {

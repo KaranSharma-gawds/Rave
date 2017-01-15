@@ -21,7 +21,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.MainActivity" />
         <activity android:name=".Activities.Main2Activity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,13 +28,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.Donor" />
-        <activity android:name=".Activities.Receiver"></activity>
         <activity android:name=".Activities.Party"></activity>
 
 
         <!-- Used for transferring files  after a successful connection -->
-        <service android:enabled="true" android:name=".Assistance.FileTransferService" />
         <service android:enabled="true" android:name=".Assistance.SendToClientService" />
     </application>
 
