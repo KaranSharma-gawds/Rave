@@ -11,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import excal.rave.R;
-import excal.rave.Assistance.dummy.DummyContent;
-import excal.rave.Assistance.dummy.DummyContent.DummyItem;
 
 import java.util.List;
 
@@ -105,7 +103,7 @@ public class frag_peerlist extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+       // void onListFragmentInteraction(DummyItem item);
     }
 
 }

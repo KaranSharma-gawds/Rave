@@ -89,7 +89,7 @@ public class test extends AppCompatActivity {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadSongs();
                     pSongs.listToBePlayed(allSongData);
-                    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,
+                    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,
                             android.R.id.text1, allSongTitles) {
                         @NonNull
                         @Override
@@ -165,6 +165,7 @@ public class test extends AppCompatActivity {
 
                                 }
                             }
+                            adapter.notifyDataSetChanged();
                             currentPlaying = i;
                             selectedView = view;
                         }

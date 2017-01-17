@@ -16,10 +16,7 @@ import android.telecom.Connection;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
-import excal.rave.Assistance.Donor;
 import excal.rave.Assistance.NsdAssistant;
-import excal.rave.Assistance.ReceiverForWifi;
-import excal.rave.Assistance.Reciever;
 import excal.rave.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -61,11 +58,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(role.equals("Master")){
-            registerReceiver(new ReceiverForWifi(mManager,mChannel,new Donor()),intentFilter);
-        } else if(role.equals("SLAVE")){
-            registerReceiver(new ReceiverForWifi(mManager,mChannel,new Reciever()),intentFilter);
-        }
+
 
     }
 }
