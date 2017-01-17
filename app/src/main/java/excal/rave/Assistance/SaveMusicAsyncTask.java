@@ -67,7 +67,7 @@ public class SaveMusicAsyncTask extends AsyncTask<Void, Void, String> {
             e.printStackTrace();
         }
 
-        return copied?path:"not copied";
+        return copied?fileName:"not copied";
     }
 
     @Override

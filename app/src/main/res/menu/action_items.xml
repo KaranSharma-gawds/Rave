@@ -17,5 +17,9 @@
         android:id="@+id/noOfClients"
         android:title="No of Clients" />
 
+    <item
+        android:id="@+id/tabs"
+        android:title="Tab Layout" />
+
 
 </menu>

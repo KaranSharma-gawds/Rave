@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="excal.rave" android:versionCode="1" android:versionName="1.0">
+    package="excal.rave"
+    android:versionCode="1"
+    android:versionName="1.0">
 
     <uses-sdk android:minSdkVersion="14" />
+
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -13,7 +16,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Google Play filtering -->
-    <uses-feature android:name="android.hardware.wifi.direct" android:required="true"/>
+    <uses-feature
+        android:name="android.hardware.wifi.direct"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -28,11 +33,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.Party"></activity>
-
+        <activity android:name=".Activities.Party" />
 
         <!-- Used for transferring files  after a successful connection -->
-        <service android:enabled="true" android:name=".Assistance.SendToClientService" />
+        <service
+            android:name=".Assistance.SendToClientService"
+            android:enabled="true" />
+
+        <activity android:name=".Activities.Tab"></activity>
     </application>
 
 </manifest>

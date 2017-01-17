@@ -17,7 +17,7 @@ public class Main2Activity extends AppCompatActivity {
         setContentView(R.layout.activity_main2);
         createParty = (Button) findViewById(R.id.create_party);
         joinParty = (Button) findViewById(R.id.join_party);
-        final Intent createGroupIntent = new Intent(Main2Activity.this,Party.class);
+        final Intent createGroupIntent = new Intent(Main2Activity.this,Tab.class);
         createParty.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

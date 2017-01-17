@@ -14,6 +14,7 @@ import android.net.wifi.p2p.WifiP2pManager.ChannelListener;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.Settings;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -36,11 +37,13 @@ import excal.rave.Assistance.ReceiverForWifi;
 import excal.rave.Assistance.ServerSocketSingleton;
 import excal.rave.R;
 
+import static android.os.Looper.getMainLooper;
+
 /**
  * Created by Karan on 02-01-2017.
  */
 
-public class Party extends AppCompatActivity implements ChannelListener, DeviceActionListener {
+public class Party /* extends AppCompatActivity */ implements ChannelListener, DeviceActionListener {
     long Uid;
     int pic;
     int currentSong;
@@ -48,21 +51,30 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
 
     public static final String TAG = "PartyActivity";
     private WifiP2pManager manager;
-    private boolean isWifiP2pEnabled = false;
+    private static boolean isWifiP2pEnabled = false;
     private Channel channel;
     private boolean retryChannel = false;
     public static String role=null;
     private final IntentFilter intentFilter = new IntentFilter();
     private BroadcastReceiver receiver = null;
     public static Activity thisActivity;
+    public static FragmentActivity fragActivity;
     public static Context thisContext;
     WifiP2pGroup group;
+
+    public Party(Activity a,Context c, String r){
+        thisActivity = a;
+        thisContext = c;
+        role = r;
+        fragActivity = (FragmentActivity) thisActivity;
+    }
 
     boolean isWifiEnabled;
     public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
         this.isWifiP2pEnabled = isWifiP2pEnabled;
     }
 
+/*
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,32 +96,53 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
 
-        /* deletePersistentGroups to delete the groups created so far.. it deletes all the groups though.
+        */
+/* deletePersistentGroups to delete the groups created so far.. it deletes all the groups though.
         * we do this coz 2 devices when trying to connect again join the old group and the owner is the same..
         *
         * "The P2P Group Owner of a Persistent P2P Group is determined when the P2P Group is formed
          * and is the same P2P Device in subsequent P2P Group sessions."
         * This line from the p2p specification says that you cant' change the group owner.
         *
-        * */
+        * *//*
+
+        deletePersistentGroups();
+    }
+*/
+
+    void setup(){
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        manager = (WifiP2pManager) thisActivity.getSystemService(Context.WIFI_P2P_SERVICE);
+        channel = manager.initialize(thisContext, getMainLooper(), null);
+
         deletePersistentGroups();
     }
 
     /** register the BroadcastReceiver with the intent values to be matched */
-    @Override
+/*    @Override
     public void onResume() {
-        super.onResume();
-        receiver = new ReceiverForWifi(manager, channel, this);
-        registerReceiver(receiver, intentFilter);
+    }*/
+
+    public void Resume(){
+        receiver = new ReceiverForWifi(manager, channel, thisActivity, this);
+        thisActivity.registerReceiver(receiver, intentFilter);
     }
 
-    @Override
+/*    @Override
     public void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+    }*/
+
+    public void Pause(){
+        thisActivity.unregisterReceiver(receiver);
     }
 
-    @Override
+/*    @Override
     protected void onDestroy() {
         super.onDestroy();
         if(DeviceDetailFragment.getClientsThread!=null) {
@@ -120,8 +153,20 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
         }
         if(role.equals("MASTER"))
             closeSockets();
+    }*/
 
+    public void Destroy() {
+        if(DeviceDetailFragment.getClientsThread!=null) {
+            DeviceDetailFragment.getClientsThread.interrupt();
+        }
+        if(DeviceDetailFragment.connectToServerThread!=null){
+            DeviceDetailFragment.connectToServerThread.interrupt();
+        }
+        if(role.equals("MASTER"))
+            closeSockets();
     }
+
+
 
     public static void closeSockets() {
         ServerSocket s = ServerSocketSingleton.getSocket();
@@ -170,23 +215,24 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
 
     public void resetData() {
         if(DeviceListFragment.isListSet){
-            DeviceListFragment fragmentList = (DeviceListFragment) getFragmentManager()
-                    .findFragmentById(R.id.frag_list);
-            if (fragmentList != null) {
-                fragmentList.clearPeers();
+//            DeviceListFragment fragmentList = (DeviceListFragment) (fragActivity.getSupportFragmentManager())
+//                    .findFragmentById(R.id.frag_list);
+            if (Tab.listFragment != null) {
+                Tab.listFragment.clearPeers();
             }
         }
         if(DeviceDetailFragment.isDeatilSet){
-            DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) getFragmentManager()
-                    .findFragmentById(R.id.frag_detail);
-            if (fragmentDetails != null) {
-                fragmentDetails.resetViews();
+//            DeviceDetailFragment fragmentDetails = (DeviceDetailFragment) fragActivity.getSupportFragmentManager()
+//                    .findFragmentById(R.id.frag_detail);
+            if (Tab.listFragment != null) {
+                Tab.detailFragment.resetViews();
             }
         }
     }
 
+
     /**--USE FOR STARTING DISCOVERY..not necessary that we use a menu..**/
-    @Override
+/*    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.action_items, menu);
@@ -209,25 +255,7 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
                 return true;
 
             case R.id.atn_direct_discover:
-                if (!isWifiP2pEnabled) {
-                    Toast.makeText(thisContext, R.string.p2p_off_warning,Toast.LENGTH_SHORT).show();
-                    return true;
-                }
-                final DeviceListFragment fragment = (DeviceListFragment) getFragmentManager()
-                        .findFragmentById(R.id.frag_list);  //first DeviceList reference
-                fragment.onInitiateDiscovery();
-                manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        Toast.makeText(thisContext, "Discovery Initiated",Toast.LENGTH_SHORT).show();
-                        //Broadcast Action WIFI_P2P_PEERS_CHANGED_ACTION is initiated
-                    }
-
-                    @Override
-                    public void onFailure(int reasonCode) {
-                        Toast.makeText(thisContext, "Discovery Failed : " + reasonCode,Toast.LENGTH_SHORT).show();
-                    }
-                });
+                discoverDevices();
                 return true;
             
             case R.id.noOfClients:
@@ -237,29 +265,70 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
                     Toast.makeText(thisContext, "Beware! You are only a client..", Toast.LENGTH_SHORT).show();
                 return true;
 
+            case R.id.tabs:
+                Intent intent = new Intent(thisActivity,Tab.class);
+                startActivity(intent);
+
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }*/
+
+    public void checkWifiEnable(){
+        if (manager != null && channel != null) {
+
+            // Since this is the system wireless settings activity, it's
+            // not going to send us a result. We will be notified by
+            // WiFiDeviceBroadcastReceiver instead.
+
+            thisActivity.startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
+        } else {
+            Log.e(TAG, "channel or manager is null");
+        }
+    }
+
+    public void discoverDevices() {
+        if (!isWifiP2pEnabled) {
+            Toast.makeText(thisContext, R.string.p2p_off_warning,Toast.LENGTH_SHORT).show();
+            return; // true;
+        }
+         /*DeviceListFragment fragment = (DeviceListFragment) fragActivity.getSupportFragmentManager()
+                .findFragmentById(R.id.frag_list);  //first DeviceList reference
+        fragment.onInitiateDiscovery();*/
+       Tab.listFragment.onInitiateDiscovery();
+
+        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(thisContext, "Discovery Initiated",Toast.LENGTH_SHORT).show();
+                //Broadcast Action WIFI_P2P_PEERS_CHANGED_ACTION is initiated
+            }
+
+            @Override
+            public void onFailure(int reasonCode) {
+                Toast.makeText(thisContext, "Discovery Failed : " + reasonCode,Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public void onChannelDisconnected() {
         // we will try once more
         if (manager != null && !retryChannel) {
-            Toast.makeText(this, R.string.channel_lost, Toast.LENGTH_LONG).show();
+            Toast.makeText(thisContext, R.string.channel_lost, Toast.LENGTH_LONG).show();
             resetData();
             retryChannel = true;
-            manager.initialize(this, getMainLooper(), this);
+            manager.initialize(thisContext, getMainLooper(), this);
         } else {
-            Toast.makeText(this,R.string.channel_lost_permanently,Toast.LENGTH_LONG).show();
+            Toast.makeText(thisContext,R.string.channel_lost_permanently,Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
     public void showDetails(WifiP2pDevice device) {
-        DeviceDetailFragment fragment = (DeviceDetailFragment) getFragmentManager()
-                .findFragmentById(R.id.frag_detail);
-        fragment.showDetails(device);
+//        DeviceDetailFragment fragment = (DeviceDetailFragment) fragActivity.getSupportFragmentManager()
+//                .findFragmentById(R.id.frag_detail);
+        Tab.detailFragment.showDetails(device);
 
     }
 
@@ -271,8 +340,10 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
          * request
          */
         if (manager != null) {
-            final DeviceListFragment fragment = (DeviceListFragment) getFragmentManager()
-                    .findFragmentById(R.id.frag_list);
+//            final DeviceListFragment fragment = (DeviceListFragment) fragActivity.getSupportFragmentManager()
+//                    .findFragmentById(R.id.frag_list);
+            DeviceListFragment fragment = Tab.listFragment;
+
             if (fragment.getDevice() == null || fragment.getDevice().status == WifiP2pDevice.CONNECTED) {
                 disconnect();
             } else if (fragment.getDevice().status == WifiP2pDevice.AVAILABLE
@@ -280,12 +351,12 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
                 manager.cancelConnect(channel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(Party.this, "Aborting connection", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(thisContext, "Aborting connection", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onFailure(int reasonCode) {
-                        Toast.makeText(Party.this,"Connect abort request failed. Reason Code: " + reasonCode,
+                        Toast.makeText(thisContext,"Connect abort request failed. Reason Code: " + reasonCode,
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -303,15 +374,16 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
 
             @Override
             public void onFailure(int reason) {
-                Toast.makeText(Party.this, "Connect failed. Retry.",Toast.LENGTH_SHORT).show();
+                Toast.makeText(thisContext, "Connect failed. Retry.",Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     @Override
     public void disconnect() {
-        final DeviceDetailFragment fragment = (DeviceDetailFragment) getFragmentManager()
-                .findFragmentById(R.id.frag_detail);
+//        final DeviceDetailFragment fragment = (DeviceDetailFragment) fragActivity.getSupportFragmentManager()
+//                .findFragmentById(R.id.frag_detail);
+        final DeviceDetailFragment fragment = Tab.detailFragment;
         fragment.resetViews();
         manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
             @Override
@@ -326,106 +398,4 @@ public class Party extends AppCompatActivity implements ChannelListener, DeviceA
         });
     }
 
-
-
-
-    /*      getFragmentManager() in Activity
-    public FragmentManager getFragmentManager() {
-        return new FragmentManager() {
-            @Override
-            public FragmentTransaction beginTransaction() {
-                return null;
-            }
-
-            @Override
-            public boolean executePendingTransactions() {
-                return false;
-            }
-
-            @Override
-            public Fragment findFragmentById(int i) {
-                return null;
-            }
-
-            @Override
-            public Fragment findFragmentByTag(String s) {
-                return null;
-            }
-
-            @Override
-            public void popBackStack() {
-
-            }
-
-            @Override
-            public boolean popBackStackImmediate() {
-                return false;
-            }
-
-            @Override
-            public void popBackStack(String s, int i) {
-
-            }
-
-            @Override
-            public boolean popBackStackImmediate(String s, int i) {
-                return false;
-            }
-
-            @Override
-            public void popBackStack(int i, int i1) {
-
-            }
-
-            @Override
-            public boolean popBackStackImmediate(int i, int i1) {
-                return false;
-            }
-
-            @Override
-            public int getBackStackEntryCount() {
-                return 0;
-            }
-
-            @Override
-            public BackStackEntry getBackStackEntryAt(int i) {
-                return null;
-            }
-
-            @Override
-            public void addOnBackStackChangedListener(OnBackStackChangedListener onBackStackChangedListener) {
-
-            }
-
-            @Override
-            public void removeOnBackStackChangedListener(OnBackStackChangedListener onBackStackChangedListener) {
-
-            }
-
-            @Override
-            public void putFragment(Bundle bundle, String s, Fragment fragment) {
-
-            }
-
-            @Override
-            public Fragment getFragment(Bundle bundle, String s) {
-                return null;
-            }
-
-            @Override
-            public Fragment.SavedState saveFragmentInstanceState(Fragment fragment) {
-                return null;
-            }
-
-            @Override
-            public boolean isDestroyed() {
-                return false;
-            }
-
-            @Override
-            public void dump(String s, FileDescriptor fileDescriptor, PrintWriter printWriter, String[] strings) {
-
-            }
-        };
-    }*/
 }

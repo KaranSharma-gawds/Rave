@@ -16,7 +16,7 @@
 
 package excal.rave.Assistance;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -167,8 +167,8 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         this.getView().setVisibility(View.VISIBLE);
         TextView view = (TextView) mContentView.findViewById(R.id.device_address);
         view.setText(device.deviceAddress);
-        view = (TextView) mContentView.findViewById(R.id.device_info);
-        view.setText("\n"+device.toString());
+        /*view = (TextView) mContentView.findViewById(R.id.device_info);
+        view.setText("\n"+device.toString());*/
     }
 
     /**
@@ -247,11 +247,13 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         byte buf[] = new byte[1024];
         int bytesRead = 0, len;
 
+        Log.v(Tag,"--copying "+fileSize);
+
         try {
             Calendar c;
             long t=0;
             int x=0;
-            while (bytesRead < fileSize && (len = inputStream.read(buf)) != -1 ) {
+            while (/*bytesRead < fileSize && */(len = inputStream.read(buf)) != -1 ) {
                 if(x==0){
                     c= Calendar.getInstance();
                     x=1;
@@ -259,14 +261,13 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
                 }
                 bytesRead+=len;
                 out.write(buf, 0, len);
-              //  Log.v(Tag,""+len);
+                Log.v(Tag,"--"+len + "  file:"+fileSize + "  read:" + bytesRead);
             }
             Calendar c1= Calendar.getInstance();
             long t1 = c1.getTimeInMillis();
 
             Log.v(Tag,"--done "+(t1-t));
             Log.v(Tag,"--bytesRead: "+bytesRead + " fileSize: "+fileSize);
-
 
 //            out.close();
 //            inputStream.close();

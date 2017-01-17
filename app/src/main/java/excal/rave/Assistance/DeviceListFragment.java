@@ -1,6 +1,6 @@
 package excal.rave.Assistance;
 
-import android.app.ListFragment;
+import android.support.v4.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -136,6 +137,7 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
         }
     }
 
+
     /**
      * Initiate a connection with the peer.
      */
@@ -159,12 +161,14 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
     }
 
 
+
     public void clearPeers() {
         if(peers!=null){
             peers.clear();
             ((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
         }
     }
+
 
     /**
      * An interface-callback for the activity to listen to fragment interaction

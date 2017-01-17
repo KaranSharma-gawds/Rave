@@ -7,7 +7,7 @@ import java.net.Socket;
  */
 
 public class SocketSingleton {
-    private static Socket socket;
+    private static Socket socket=new Socket();
 
     public static void setSocket(Socket s){
         socket = s;
