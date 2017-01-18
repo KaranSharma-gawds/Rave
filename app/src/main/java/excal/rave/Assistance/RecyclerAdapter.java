@@ -30,6 +30,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     int currentPlaying;
     AppCompatActivity activity;
     View selectedView;
+    int activityId;
+    public static final int SAMPLEACTIVITY= 1;
+    public static final int SELECTEDSONGS = 1;
 
     public class RecyclerList extends RecyclerView.ViewHolder{
         public TextView songTitle;
@@ -44,10 +47,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     public void setObject(PlaySongs pSongs){
         this.pSongs = pSongs;
     }
-    public RecyclerAdapter(List<Song> songList,Context context,AppCompatActivity activity){
+    public RecyclerAdapter(List<Song> songList,Context context,AppCompatActivity activity, int activityId){
         this.songList = songList;
         this.context = context;
         this.activity = activity;
+        this.activityId = activityId;
     }
     @Override
     public RecyclerList onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -60,13 +64,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     public void onBindViewHolder(final RecyclerList holder, final int position) {
         final Song song = songList.get(position);
         holder.songTitle.setText(song.getTitle());
-        holder.view.setBackgroundColor(song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem):ContextCompat.getColor(context,R.color.deselectedItem));
+        holder.view.setBackgroundColor(/*song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem):*/ContextCompat.getColor(context,R.color.deselectedItem));
 
         holder.songTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 song.setSelected(!song.isSelected());
-                /*if(activity.getBaseContext().getClass() == SampleActivity.class) {*/
+                if(activityId ==1) {
                     if (song.isSelected()) {
                         holder.view.setBackgroundColor(ContextCompat.getColor(context, R.color.selectedItem));
                         selectedSongList.add(song);
@@ -80,7 +84,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                     } else {
                         ((SampleActivity) activity).getFab().setVisibility(View.VISIBLE);
                     }
-                /*}*//*else{
+                }else{
                     if (pSongs.mp.isPlaying()) {
                         if (currentPlaying == position) {
                             pSongs.mp.pause();
@@ -102,7 +106,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                     }
                     currentPlaying = position;
                     selectedView = view;
-                }*/
+                }
 
                 }
             });

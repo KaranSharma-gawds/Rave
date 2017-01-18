@@ -46,7 +46,7 @@ public class SelectedSongs extends AppCompatActivity implements AdapterView.OnIt
         pSongs.init();
         pSongs.setListeners();
         selectedSongs = SampleActivity.adapter.getList();
-        adapter = new RecyclerAdapter(selectedSongs,this,this);
+        adapter = new RecyclerAdapter(selectedSongs,this,this,2);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         adapter.setObject(pSongs);
         //selectedSongs = adapter.getList();

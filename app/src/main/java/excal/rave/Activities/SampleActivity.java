@@ -66,7 +66,7 @@ public class SampleActivity extends AppCompatActivity  {
         });
         songs = new ArrayList<>();
         listView = (RecyclerView) findViewById(R.id.recycler_view);
-        adapter = new RecyclerAdapter(songs,this,this);
+        adapter = new RecyclerAdapter(songs,this,this,1);
         seekPermission();
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         listView.setLayoutManager(mLayoutManager);
