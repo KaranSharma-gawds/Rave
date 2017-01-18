@@ -20,9 +20,11 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import excal.rave.Activities.Tab;
 import excal.rave.R;
 import excal.rave.Activities.Party;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
+import android.widget.Toast;
 
 /**
  * Created by Karan on 04-01-2017.
@@ -145,7 +147,16 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
     public void onListItemClick(ListView l, View v, int position, long id) {
         WifiP2pDevice device = (WifiP2pDevice) getListAdapter().getItem(position);
         ((DeviceActionListener) getActivity()).showDetails(device);
+        /*if(device.status != WifiP2pDevice.CONNECTED)
+            ((DeviceActionListener) getActivity()).showDetails(device);
+        else{
+        TODO: add dialog to disconnect
+            ((DeviceActionListener) getActivity()).disconnect();
+//            Toast.makeText(Tab.thisContext, "already connected", Toast.LENGTH_SHORT).show();
+        }*/
+
     }
+
 
     /**
      * Update UI for this device.
@@ -154,10 +165,10 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
      */
     public void updateThisDevice(WifiP2pDevice device) {
         this.device = device;
-        TextView view = (TextView) mContentView.findViewById(R.id.my_name);
-        view.setText(device.deviceName);
-        view = (TextView) mContentView.findViewById(R.id.my_status);
-        view.setText(getDeviceStatus(device.status));
+//        TextView view = (TextView) mContentView.findViewById(R.id.my_name);
+//        view.setText(device.deviceName);
+//        view = (TextView) mContentView.findViewById(R.id.my_status);
+//        view.setText(getDeviceStatus(device.status));
     }
 
 

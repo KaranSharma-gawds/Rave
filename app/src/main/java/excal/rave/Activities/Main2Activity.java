@@ -6,6 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.IOException;
+
+import excal.rave.Assistance.ClientSocket;
+import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.R;
 
 public class Main2Activity extends AppCompatActivity {
@@ -30,6 +34,17 @@ public class Main2Activity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 createGroupIntent.putExtra("ROLE","SLAVE");
+                if(Tab.manager != null){
+                    ((DeviceListFragment.DeviceActionListener) Tab.thisActivity).disconnect();
+                }
+                if(ClientSocket.socket!=null){
+                    try {
+                        ClientSocket.socket.close();
+                        ClientSocket.socket = null;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 startActivity(createGroupIntent);
             }
         });

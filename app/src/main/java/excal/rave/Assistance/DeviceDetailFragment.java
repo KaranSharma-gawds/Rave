@@ -16,6 +16,10 @@
 
 package excal.rave.Assistance;
 
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -33,6 +37,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import excal.rave.Activities.Tab;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Activities.Party;
 
@@ -66,41 +71,23 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
     public static Thread connectToServerThread = null;
     public static boolean isDeatilSet = false;
 
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.v(Tag,"--onActivityCreated");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.v(Tag,"onCreateView");
+//        if(!isDeatilSet)
         mContentView = inflater.inflate(R.layout.device_detail, null);
         isDeatilSet = true;
         mContentView.findViewById(R.id.btn_connect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                WifiP2pConfig config = new WifiP2pConfig();
-                config.deviceAddress = device.deviceAddress;
-                if(Party.role.equals("SLAVE")){
-                    config.groupOwnerIntent = 0;
-                }else{
-                    config.groupOwnerIntent = 15;
-                }
-
-                config.wps.setup = WpsInfo.PBC;
-                if (progressDialog != null && progressDialog.isShowing()) {
-                    progressDialog.dismiss();
-                }
-                progressDialog = ProgressDialog.show(getActivity(), "Press back to cancel",
-                        "Connecting to :" + device.deviceAddress, true, true
-//                        new DialogInterface.OnCancelListener() {
-//
-//                            @Override
-//                            public void onCancel(DialogInterface dialog) {
-//                                ((DeviceActionListener) getActivity()).cancelDisconnect();
-//                            }
-//                        }
-                );
-                ((DeviceActionListener) getActivity()).connect(config);
+//                connectDevice();
                 /* Second way: could call createGroup() to make the current device as the group owner*/
             }
         });
@@ -154,8 +141,37 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         }else{
             Toast.makeText(getActivity().getApplicationContext(), "No image selected", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void connectDevice(WifiP2pDevice device){
+        this.device = device;
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        if(Tab.role.equals("SLAVE")){
+            config.groupOwnerIntent = 0;
+        }else{
+            config.groupOwnerIntent = 15;
+        }
+
+        config.wps.setup = WpsInfo.PBC;
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+        progressDialog = ProgressDialog.show(Tab.thisActivity, "Press back to cancel",
+                "Connecting to :" + device.deviceAddress, true, true
+//                        new DialogInterface.OnCancelListener() {
+//
+//                            @Override
+//                            public void onCancel(DialogInterface dialog) {
+//                                ((DeviceActionListener) getActivity()).cancelDisconnect();
+//                            }
+//                        }
+        );
+        ((DeviceActionListener) Tab.thisActivity).connect(config);
+
 
     }
+
 
     /**
      * Updates the UI with device data
@@ -164,9 +180,17 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
      */
     public void showDetails(WifiP2pDevice device) {
         this.device = device;
-        this.getView().setVisibility(View.VISIBLE);
-        TextView view = (TextView) mContentView.findViewById(R.id.device_address);
-        view.setText(device.deviceAddress);
+//        if(mContentView==null)
+
+        if(isDeatilSet){
+            this.getView().setVisibility(View.VISIBLE);
+            TextView view = (TextView) mContentView.findViewById(R.id.device_address);
+            view.setText(device.deviceAddress);
+        }else{
+            Toast.makeText(Tab.thisContext, "no view created", Toast.LENGTH_SHORT).show();
+            Log.v(Tag,"--isDetailSet(view-created):false");
+//            connectDevice();
+        }
         /*view = (TextView) mContentView.findViewById(R.id.device_info);
         view.setText("\n"+device.toString());*/
     }
@@ -175,6 +199,8 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
      * Clears the UI fields after a disconnect or direct mode disable operation.
      */
     public void resetViews(){
+        Log.v(Tag,"--DeviceDetailFragment.resetViews()");
+        /*
         mContentView.findViewById(R.id.btn_connect).setVisibility(View.VISIBLE);
         TextView view = (TextView) mContentView.findViewById(R.id.device_address);
         view.setText(R.string.empty);
@@ -185,7 +211,8 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         view = (TextView) mContentView.findViewById(R.id.status_text);
         view.setText(R.string.empty);
         mContentView.findViewById(R.id.btn_start_client).setVisibility(View.GONE);
-        this.getView().setVisibility(View.GONE);}
+        this.getView().setVisibility(View.GONE);*/
+    }
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
@@ -193,26 +220,48 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             progressDialog.dismiss();
         }
         this.info = wifiP2pInfo;
-        this.getView().setVisibility(View.VISIBLE);
+
+/*        this.getView().setVisibility(View.VISIBLE);
 
         // The owner IP is now known.
         TextView view = (TextView) mContentView.findViewById(R.id.group_owner);
         String text = getResources().getString(R.string.group_owner_text) + ((info.isGroupOwner == true) ? "yes" : "no");
-        text += "\n" + getResources().getString(R.string.party_owner_text) + ((Party.role.equals("MASTER"))? "yes" : "no");
+        text += "\n" + getResources().getString(R.string.party_owner_text) + ((Tab.role.equals("MASTER"))? "yes" : "no");
         view.setText(text);
 
         // InetAddress from WifiP2pInfo struct.
         view = (TextView) mContentView.findViewById(R.id.device_info);
-        view.setText("Group Owner IP - " + info.groupOwnerAddress.getHostAddress()+"\n");
+        view.setText("Group Owner IP - " + info.groupOwnerAddress.getHostAddress()+"\n"); */
+        Toast.makeText(Tab.thisContext  , "Group Owner IP - " + info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+
+ /*       final AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity())
+        .setTitle("Connection Successful")
+        .setMessage("Group Owner: "+info.groupOwnerAddress.getHostAddress()).setIcon(R.drawable.ic_launcher).setPositiveButton("Send File", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("audio/*");
+                    startActivityForResult(intent, CHOOSE_FILE_RESULT_CODE);
+                }
+            }).setNegativeButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        }).create();
+        alertDialog.show();*/
+
 
         // This is creating a groupOwner based on a device performance...
         // After the group negotiation, we assign the group owner as the file
         // server. The file server is single threaded, single connection server socket.
 
-        if(Party.role.equals("MASTER")){
+        if(Tab.role.equals("MASTER")){
             // make it send data as he is hosting the party
-            mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
-            ((TextView) mContentView.findViewById(R.id.status_text)).setText(getResources().getString(R.string.host_text));
+            Toast.makeText(Tab.thisContext, "Master hosting party", Toast.LENGTH_SHORT).show();
+            Log.v(Tag,"--host created");
+//            mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
+//            ((TextView) mContentView.findViewById(R.id.status_text)).setText(getResources().getString(R.string.host_text));
             // master sends data.. it can remember all the sockets for repetitive sending
 
             //accepting client requests
@@ -230,17 +279,17 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             new FileServerAsyncTask(getActivity(), mContentView.findViewById(R.id.status_text)).execute();
             */
 
-
-
+            Toast.makeText(Tab.thisContext, "Client created", Toast.LENGTH_SHORT).show();
+            Log.v(Tag,"--client created");
             //create socket to server
-            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),Party.thisActivity);
+            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
             connectToServerThread = new Thread(clientSocket);
             connectToServerThread.start();
 
         }
 
         // hide the connect button
-        mContentView.findViewById(R.id.btn_connect).setVisibility(View.GONE);
+//        mContentView.findViewById(R.id.btn_connect).setVisibility(View.GONE);
     }
 
     public static boolean copyFile(InputStream inputStream, OutputStream out, long fileSize) {
@@ -253,7 +302,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             Calendar c;
             long t=0;
             int x=0;
-            while (/*bytesRead < fileSize && */(len = inputStream.read(buf)) != -1 ) {
+            while (bytesRead < fileSize && (len = inputStream.read(buf, 0, fileSize-bytesRead > buf.length ? buf.length : (int)(fileSize-bytesRead))) > 0 ) {
                 if(x==0){
                     c= Calendar.getInstance();
                     x=1;
@@ -272,18 +321,18 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
 //            out.close();
 //            inputStream.close();
 
-            if(Party.role.equals("MASTER")){
+            if(Tab.role.equals("MASTER")){
                 inputStream.close();
                 out.flush();
             }
-            if(Party.role.equals("SLAVE")) {
+            if(Tab.role.equals("SLAVE")) {
                 out.close();
             }
         } catch (IOException e) {
             Log.v(Tag, e.toString());
             return false;
         }
-        Log.v(Tag, "copyFile: "+((Party.role.equals("MASTER"))? "file sent to client" : "file received from server") );
+        Log.v(Tag, "copyFile: "+((Tab.role.equals("MASTER"))? "file sent to client" : "file received from server") );
         return true;
     }
 

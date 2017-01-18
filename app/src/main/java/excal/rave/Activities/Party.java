@@ -43,7 +43,7 @@ import static android.os.Looper.getMainLooper;
  * Created by Karan on 02-01-2017.
  */
 
-public class Party /* extends AppCompatActivity */ implements ChannelListener, DeviceActionListener {
+public class Party /* extends AppCompatActivity implements ChannelListener, DeviceActionListener*/ {
     long Uid;
     int pic;
     int currentSong;
@@ -54,7 +54,7 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
     private static boolean isWifiP2pEnabled = false;
     private Channel channel;
     private boolean retryChannel = false;
-    public static String role=null;
+    public static String roleValue=null;
     private final IntentFilter intentFilter = new IntentFilter();
     private BroadcastReceiver receiver = null;
     public static Activity thisActivity;
@@ -65,14 +65,14 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
     public Party(Activity a,Context c, String r){
         thisActivity = a;
         thisContext = c;
-        role = r;
+        roleValue = r;
         fragActivity = (FragmentActivity) thisActivity;
     }
 
-    boolean isWifiEnabled;
+/*    boolean isWifiEnabled;
     public void setIsWifiP2pEnabled(boolean isWifiP2pEnabled) {
         this.isWifiP2pEnabled = isWifiP2pEnabled;
-    }
+    }*/
 
 /*
 
@@ -110,7 +110,7 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
     }
 */
 
-    void setup(){
+/*    void setup(){
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -120,17 +120,19 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
         channel = manager.initialize(thisContext, getMainLooper(), null);
 
         deletePersistentGroups();
-    }
+    }*/
 
     /** register the BroadcastReceiver with the intent values to be matched */
 /*    @Override
     public void onResume() {
     }*/
 
+/*
     public void Resume(){
         receiver = new ReceiverForWifi(manager, channel, thisActivity, this);
         thisActivity.registerReceiver(receiver, intentFilter);
     }
+*/
 
 /*    @Override
     public void onPause() {
@@ -138,9 +140,9 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
         unregisterReceiver(receiver);
     }*/
 
-    public void Pause(){
-        thisActivity.unregisterReceiver(receiver);
-    }
+//    public void Pause(){
+//        thisActivity.unregisterReceiver(receiver);
+//    }
 
 /*    @Override
     protected void onDestroy() {
@@ -155,14 +157,14 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
             closeSockets();
     }*/
 
-    public void Destroy() {
+    public static void Destroy() {
         if(DeviceDetailFragment.getClientsThread!=null) {
             DeviceDetailFragment.getClientsThread.interrupt();
         }
         if(DeviceDetailFragment.connectToServerThread!=null){
             DeviceDetailFragment.connectToServerThread.interrupt();
         }
-        if(role.equals("MASTER"))
+        if(Tab.role.equals("MASTER"))
             closeSockets();
     }
 
@@ -197,7 +199,7 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
 
     }
 
-    private void deletePersistentGroups(){
+/*    private void deletePersistentGroups(){
         try {
             Method[] methods = WifiP2pManager.class.getMethods();
             for (int i = 0; i < methods.length; i++) {
@@ -211,9 +213,9 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
         } catch(Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
-    public void resetData() {
+/*    public void resetData() {
         if(DeviceListFragment.isListSet){
 //            DeviceListFragment fragmentList = (DeviceListFragment) (fragActivity.getSupportFragmentManager())
 //                    .findFragmentById(R.id.frag_list);
@@ -228,7 +230,7 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
                 Tab.detailFragment.resetViews();
             }
         }
-    }
+    }*/
 
 
     /**--USE FOR STARTING DISCOVERY..not necessary that we use a menu..**/
@@ -274,7 +276,7 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
         }
     }*/
 
-    public void checkWifiEnable(){
+/*    public void checkWifiEnable(){
         if (manager != null && channel != null) {
 
             // Since this is the system wireless settings activity, it's
@@ -285,16 +287,19 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
         } else {
             Log.e(TAG, "channel or manager is null");
         }
-    }
+    }*/
 
+/*
     public void discoverDevices() {
         if (!isWifiP2pEnabled) {
             Toast.makeText(thisContext, R.string.p2p_off_warning,Toast.LENGTH_SHORT).show();
             return; // true;
         }
-         /*DeviceListFragment fragment = (DeviceListFragment) fragActivity.getSupportFragmentManager()
+         */
+/*DeviceListFragment fragment = (DeviceListFragment) fragActivity.getSupportFragmentManager()
                 .findFragmentById(R.id.frag_list);  //first DeviceList reference
-        fragment.onInitiateDiscovery();*/
+        fragment.onInitiateDiscovery();*//*
+
        Tab.listFragment.onInitiateDiscovery();
 
         manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
@@ -310,7 +315,9 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
             }
         });
     }
+*/
 
+/*
     @Override
     public void onChannelDisconnected() {
         // we will try once more
@@ -334,11 +341,13 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
 
     @Override
     public void cancelDisconnect() {
-        /*
+        */
+/*
          * A cancel abort request by user. Disconnect i.e. removeGroup if
          * already connected. Else, request WifiP2pManager to abort the ongoing
          * request
-         */
+         *//*
+
         if (manager != null) {
 //            final DeviceListFragment fragment = (DeviceListFragment) fragActivity.getSupportFragmentManager()
 //                    .findFragmentById(R.id.frag_list);
@@ -397,5 +406,6 @@ public class Party /* extends AppCompatActivity */ implements ChannelListener, D
             }
         });
     }
+*/
 
 }

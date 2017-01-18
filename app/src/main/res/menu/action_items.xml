@@ -21,5 +21,9 @@
         android:id="@+id/tabs"
         android:title="Tab Layout" />
 
+    <item
+        android:id="@+id/sending"
+        android:title="Send Files" />
+
 
 </menu>

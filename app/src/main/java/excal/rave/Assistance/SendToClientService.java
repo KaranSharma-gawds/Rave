@@ -69,7 +69,7 @@ public class SendToClientService extends IntentService {
                     }
 
                     //Output size of file to be sent
-                    dout.writeUTF(Long.toString(fileSize));
+                    dout.writeLong(fileSize);
                     dout.flush();
                     //Output filename
                     String filename = getFileName(uri);

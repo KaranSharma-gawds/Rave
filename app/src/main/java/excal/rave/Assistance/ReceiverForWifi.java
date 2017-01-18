@@ -8,6 +8,8 @@ import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import excal.rave.Activities.Tab;
@@ -22,15 +24,19 @@ public class ReceiverForWifi extends BroadcastReceiver {
     private static String Tag = "ReceiverForWifi";
     WifiP2pManager manager;
     WifiP2pManager.Channel channel;
-    Activity activity;  //Tab.this
-    Party party;    //Tab -> new Party()
+    Activity activity;
+    FragmentActivity fragActivity;
+    Party party;
+    Tab tab;
 
-    public ReceiverForWifi(WifiP2pManager manager, Channel channel, Activity activity, Party p) {
+    public ReceiverForWifi(WifiP2pManager manager, Channel channel, Activity activity, Tab t) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.activity = activity;
-        party = p;
+        fragActivity = (FragmentActivity) activity;
+//        party = p;
+        tab = t;
     }
 
 
@@ -38,7 +44,7 @@ public class ReceiverForWifi extends BroadcastReceiver {
         super();
         this.manager = manager;
         this.channel = channel;
-        this.activity = activity;
+        this.activity = activity;f
     }*/
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -48,10 +54,10 @@ public class ReceiverForWifi extends BroadcastReceiver {
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 // Wifi Direct mode is enabled
-                party.setIsWifiP2pEnabled(true);
+                tab.setIsWifiP2pEnabled(true);
             } else {
-                party.setIsWifiP2pEnabled(false);
-                party.resetData();
+                tab.setIsWifiP2pEnabled(false);
+                tab.resetData();
             }
             Log.v(Tag, "P2P state changed - " + state);
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
@@ -60,8 +66,9 @@ public class ReceiverForWifi extends BroadcastReceiver {
             // asynchronous call and the calling activity is notified with a
             // callback on PeerListListener.onPeersAvailable()
             if (manager != null) {
-                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) party.fragActivity.getSupportFragmentManager()
-                        .findFragmentById(R.id.frag_list));
+//                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) fragActivity.getSupportFragmentManager()
+//                        .findFragmentById(R.id.frag_list));
+                manager.requestPeers(channel,Tab.listFragment);
                 // onPeersAvailable() is called
             }
             Log.v(Tag, "P2P peers changed");
@@ -76,7 +83,9 @@ public class ReceiverForWifi extends BroadcastReceiver {
             if (networkInfo.isConnected()) {
                 // We are connected with the other device, request connection
                 // info to find group owner IP
-                DeviceDetailFragment fragment = (DeviceDetailFragment) party.fragActivity.getSupportFragmentManager().findFragmentById(R.id.frag_detail);
+//                DeviceDetailFragment fragment = (DeviceDetailFragment) fragActivity
+//                        .getSupportFragmentManager().findFragmentById(R.id.frag_detail);
+
                 manager.requestConnectionInfo(channel,Tab.detailFragment);
             } else {
                 // It's a disconnect
@@ -85,10 +94,8 @@ public class ReceiverForWifi extends BroadcastReceiver {
             }
 
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-//            DeviceListFragment fragment = (DeviceListFragment) party.fragActivity.getSupportFragmentManager().findFragmentById(R.id.frag_list);
-            DeviceListFragment fragment = Tab.listFragment;
-            if(fragment != null)
-            fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
+//            DeviceListFragment fragment = (DeviceListFragment) fragActivity.getSupportFragmentManager().findFragmentById(R.id.frag_list);
+            Tab.listFragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
         }
     }
 }

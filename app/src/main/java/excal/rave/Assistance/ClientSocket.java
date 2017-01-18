@@ -17,7 +17,6 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import excal.rave.Activities.Party;
 import excal.rave.R;
 
 /**
@@ -25,6 +24,7 @@ import excal.rave.R;
  */
 
 public class ClientSocket implements Runnable {
+    public static Socket socket = null;
     private String Tag = "ClientSocket";
     private String serverAddress;
     private Activity activity;
@@ -37,7 +37,7 @@ public class ClientSocket implements Runnable {
 
     @Override
     public void run() {
-        Socket socket = new Socket();
+        socket = new Socket();
         try {
             socket.bind(null);
             socket.connect(new InetSocketAddress(serverAddress,DeviceDetailFragment.port_no), SOCKET_TIMEOUT);
@@ -50,29 +50,30 @@ public class ClientSocket implements Runnable {
 //            Log.v(Tag,"--"+s);
 //            generateToast(s);
 
-
             while (true){
+                Log.v(Tag,"--waiting to read");
                 s=din.readUTF();
-                Log.v(Tag,"received "+s);
+                Log.v(Tag,"received type "+s);
                 if(s.equals("position")){
                     s=din.readUTF();
                     int position = Integer.parseInt(s);
                     new SetMusicPositionAsyncTask(socket,position).execute();
                 }else if(s.equals("musicFile")){
                     //fileSize
-                    s=din.readUTF();
-                    long fileSize = Long.parseLong(s);
+                    long fileSize = din.readLong();
                     //fileName
                     s=din.readUTF();
-
+                    Log.v(Tag,"--creating task");
                     new SaveMusicAsyncTask(socket,activity,fileSize,s).execute();
                 }else if(s.equals("nextSong")){
 
                 }else{
                     Log.v(Tag,"--unexpected data: "+s);
+                    break;
                 }
             }
 
+            Log.v(Tag,"--clientSocket over");
 
 //            new SaveMusicAsyncTask(socket,activity).execute();
 

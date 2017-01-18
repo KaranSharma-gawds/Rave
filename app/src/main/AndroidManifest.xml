@@ -33,14 +33,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.Party" />
+        <!--<activity android:name=".Activities.Party" />-->
 
         <!-- Used for transferring files  after a successful connection -->
         <service
             android:name=".Assistance.SendToClientService"
             android:enabled="true" />
 
-        <activity android:name=".Activities.Tab"></activity>
+        <activity android:name=".Activities.Tab"
+            android:parentActivityName=".Activities.Main2Activity"></activity>
     </application>
 
 </manifest>
