@@ -41,7 +41,7 @@ public class SampleActivity extends AppCompatActivity  {
     RecyclerView listView;
     List<Song> songs;
     Cursor cursor;
-    RecyclerAdapter adapter;
+    static RecyclerAdapter adapter;
     ActionMode actionMode;
     GestureDetectorCompat gestureDetector;
     FloatingActionButton fab;
@@ -108,9 +108,9 @@ public class SampleActivity extends AppCompatActivity  {
             songs.add(song);
         } while (cursor.moveToNext());
         adapter.notifyDataSetChanged();
-          //itemState = new boolean[allSongTitles.size()];
     }
     public FloatingActionButton getFab(){
+
         return fab;
     }
 }
