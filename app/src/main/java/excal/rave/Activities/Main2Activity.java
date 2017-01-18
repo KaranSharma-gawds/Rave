@@ -3,6 +3,7 @@ package excal.rave.Activities;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -10,9 +11,11 @@ import java.io.IOException;
 
 import excal.rave.Assistance.ClientSocket;
 import excal.rave.Assistance.DeviceListFragment;
+import excal.rave.Assistance.ServerSocketSingleton;
 import excal.rave.R;
 
 public class Main2Activity extends AppCompatActivity {
+    private static final String TAG = "Main2Activity";
     Button createParty, joinParty;
     private static int partyCount = 0;
     @Override
@@ -48,6 +51,7 @@ public class Main2Activity extends AppCompatActivity {
                 startActivity(createGroupIntent);
             }
         });
+        Log.v(TAG,"--"+ (ServerSocketSingleton.getIsServerSocketCreated()?"ServerSocket created":"ServerSocket not created"));
     }
 
     private void reseting() {

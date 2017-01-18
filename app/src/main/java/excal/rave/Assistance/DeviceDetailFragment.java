@@ -45,6 +45,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -232,7 +234,6 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         // InetAddress from WifiP2pInfo struct.
         view = (TextView) mContentView.findViewById(R.id.device_info);
         view.setText("Group Owner IP - " + info.groupOwnerAddress.getHostAddress()+"\n"); */
-        Toast.makeText(Tab.thisContext  , "Group Owner IP - " + info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 
  /*       final AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity())
         .setTitle("Connection Successful")
@@ -251,14 +252,11 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         }).create();
         alertDialog.show();*/
 
+        Toast.makeText(Tab.thisContext  , "Group Owner IP - " + info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 
-        // This is creating a groupOwner based on a device performance...
-        // After the group negotiation, we assign the group owner as the file
-        // server. The file server is single threaded, single connection server socket.
 
         if(Tab.role.equals("MASTER")){
             // make it send data as he is hosting the party
-            Toast.makeText(Tab.thisContext, "Master hosting party", Toast.LENGTH_SHORT).show();
             Log.v(Tag,"--host created");
 //            mContentView.findViewById(R.id.btn_start_client).setVisibility(View.VISIBLE);
 //            ((TextView) mContentView.findViewById(R.id.status_text)).setText(getResources().getString(R.string.host_text));
@@ -267,24 +265,46 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             //accepting client requests
             if(!ServerSocketSingleton.getIsServerSocketCreated()){
                 //to check that Server is created only once
+                try {
+                    ServerSocket serverSocket = new ServerSocket();
+                    serverSocket.setReuseAddress(true);
+                    serverSocket.bind(new InetSocketAddress(port_no));
+                    Log.v(Tag,"ServerSocketmade");
+
+                    ServerSocketSingleton.setIsServerSocketCreated(true);
+                    ServerSocketSingleton.setSocket(serverSocket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 GetClients getClients = new GetClients();
                 getClientsThread = new Thread(getClients);
                 getClientsThread.start();
-                ServerSocketSingleton.setIsServerSocketCreated(true);
+                Toast.makeText(Tab.thisContext, "Master hosting party", Toast.LENGTH_SHORT).show();
+                Log.v(Tag,"--calling getClients");
             }
 
         } else{
-            /*
-            //make it receive data as it wants to join the party
-            new FileServerAsyncTask(getActivity(), mContentView.findViewById(R.id.status_text)).execute();
-            */
 
-            Toast.makeText(Tab.thisContext, "Client created", Toast.LENGTH_SHORT).show();
             Log.v(Tag,"--client created");
             //create socket to server
-            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
-            connectToServerThread = new Thread(clientSocket);
-            connectToServerThread.start();
+//            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
+            if(!ClientSocketSingleton.getIsClientCreated()){
+                ClientSocket clientSocket = ClientSocketSingleton.getClientSocket();
+                ClientSocketSingleton.setValues(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
+                connectToServerThread = new Thread(clientSocket);
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Log.v(Tag,"--cant sleep thread before client creation");
+                }
+
+                ClientSocketSingleton.setIsClientCreated(true);
+                connectToServerThread.start();
+
+                Log.v(Tag,"--creating clientSocket");
+                Toast.makeText(Tab.thisContext, "Client created", Toast.LENGTH_SHORT).show();
+            }
 
         }
 

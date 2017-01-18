@@ -30,17 +30,23 @@ public class ClientSocket implements Runnable {
     private Activity activity;
     private static final int SOCKET_TIMEOUT = 5000;
 
-    public ClientSocket(String hostAddress, Activity act) {
-        serverAddress =  hostAddress;
-        activity = act;
+    public ClientSocket() {
+        socket = new Socket();
+//        serverAddress =  hostAddress;
+//        activity = act;
+    }
+
+    public void set(String add, Activity a){
+        serverAddress =  add;
+        activity = a;
     }
 
     @Override
     public void run() {
-        socket = new Socket();
         try {
             socket.bind(null);
             socket.connect(new InetSocketAddress(serverAddress,DeviceDetailFragment.port_no), SOCKET_TIMEOUT);
+            Log.v(Tag,"--client socket made");
             DeviceDetailFragment.MyIpAddress_client = socket.getLocalAddress().getHostAddress();
             generateToast("MyIpAddress: "+DeviceDetailFragment.MyIpAddress_client);
 

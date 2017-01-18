@@ -30,6 +30,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import excal.rave.Assistance.ClientSocket;
+import excal.rave.Assistance.ClientSocketSingleton;
 import excal.rave.Assistance.DeviceDetailFragment;
 import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
@@ -158,26 +160,49 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
     }*/
 
     public static void Destroy() {
+        Log.v(TAG,"--Party.Destroy()");
         if(DeviceDetailFragment.getClientsThread!=null) {
             DeviceDetailFragment.getClientsThread.interrupt();
+            DeviceDetailFragment.getClientsThread = null;
         }
         if(DeviceDetailFragment.connectToServerThread!=null){
             DeviceDetailFragment.connectToServerThread.interrupt();
+            DeviceDetailFragment.connectToServerThread = null;
         }
         if(Tab.role.equals("MASTER"))
             closeSockets();
+        if(Tab.role.equals("SLAVE"));
+            closeClientSocket();
+    }
+
+    public static void closeClientSocket() {
+        if(ClientSocketSingleton.getIsClientCreated()){
+            ClientSocket s = ClientSocketSingleton.getClientSocket();
+            try {
+                s.socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.v(TAG,"--cant close clientSocket");
+            }
+        }
+        ClientSocketSingleton.setIsClientCreated(false);
     }
 
 
-
     public static void closeSockets() {
+        //closing ServerSocket
         ServerSocket s = ServerSocketSingleton.getSocket();
         if(s!=null && !s.isClosed()){
             try {
                 s.close();
+                ServerSocketSingleton.setSocket(null);
             } catch (IOException e) {
                 e.printStackTrace();
+                Log.v(TAG,"--cant close ServerSocket");
             }
+        }else if(s!=null && s.isClosed()){
+            ServerSocketSingleton.setSocket(null);
+            Log.v(TAG,"--serverSocket was already closed");
         }
         ServerSocketSingleton.setIsServerSocketCreated(false);
 
@@ -189,12 +214,13 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
                         socket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        Log.v(TAG,"--cant close server-client sockets");
                     }
                 }
             }
-            list.clear();
+            DeviceDetailFragment.client_list.clear();
         }catch (Exception e){
-            Log.d(Party.TAG,e.toString());
+            Log.d(Party.TAG,"--"+e.toString());
         }
 
     }

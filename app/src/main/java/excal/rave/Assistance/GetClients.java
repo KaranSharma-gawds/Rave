@@ -22,11 +22,12 @@ public class GetClients implements Runnable {
     @Override
     public void run() {
         try {
-            ServerSocket serverSocket = new ServerSocket();
+     /*       ServerSocket serverSocket = new ServerSocket();
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(DeviceDetailFragment.port_no));
             ServerSocketSingleton.setSocket(serverSocket);
-            Log.v(Tag,"ServerSocketmade");
+            Log.v(Tag,"ServerSocketmade");*/
+            ServerSocket serverSocket = ServerSocketSingleton.getSocket();
 
             while(!Thread.currentThread().isInterrupted()){
                 Socket socket = serverSocket.accept();
@@ -39,6 +40,7 @@ public class GetClients implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Log.v(Tag,"--serverSocket closed");
         }
     }
 }

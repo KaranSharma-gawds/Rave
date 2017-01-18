@@ -38,6 +38,7 @@ import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Assistance.ReceiverForWifi;
 import excal.rave.Assistance.SendToClientService;
+import excal.rave.Assistance.ServerSocketSingleton;
 import excal.rave.Assistance.SocketSingleton;
 import excal.rave.R;
 
@@ -76,6 +77,9 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
         thisActivity = Tab.this;
         thisContext = getApplicationContext();
 
+        Intent fromMain2Activity = getIntent();
+        role = fromMain2Activity.getStringExtra("ROLE");
+
 
 //        toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
@@ -90,6 +94,7 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 
+        Log.v(TAG,"--"+ (ServerSocketSingleton.getIsServerSocketCreated()?"ServerSocket created":"ServerSocket not created"));
     }
 
     @Override
@@ -137,13 +142,14 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(receiver);
+//        unregisterReceiver(receiver);
 //        party.Pause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(receiver);
         Party.Destroy();
     }
 
@@ -258,11 +264,11 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         listFragment = new DeviceListFragment();
         adapter.addFragment(listFragment, "PEERS");
-/*        if(Party.role.equals("MASTER")){
-            adapter.addFragment(new TwoFragment(), "ALL SONG");
-        }*/
+        if(role.equals("MASTER")){
+            adapter.addFragment(new DeviceListFragment(), "ALL SONG");
+        }
 //        adapter.addFragment(new ThreeFragment(), "SHARED SONGS");
-        adapter.addFragment(new DeviceListFragment(), "Extra");
+        adapter.addFragment(new DeviceListFragment(), "PLAY");
         viewPager.setAdapter(adapter);
     }
 
