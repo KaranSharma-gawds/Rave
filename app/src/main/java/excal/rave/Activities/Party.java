@@ -180,6 +180,7 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
             ClientSocket s = ClientSocketSingleton.getClientSocket();
             try {
                 s.socket.close();
+                ClientSocketSingleton.setClientSocket(null);
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.v(TAG,"--cant close clientSocket");

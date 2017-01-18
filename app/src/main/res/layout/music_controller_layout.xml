@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/media_controls">
+    <SeekBar
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/seekBar"
+        android:layout_alignParentBottom="true"/>
+    <Button
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/next_button"
+        android:background="@color/colorAccent"
+        android:layout_toLeftOf="@+id/play_button"
+        android:layout_above="@+id/seekBar"/>
+
+    <Button
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/play_button"
+        android:background="@color/colorAccent"
+        android:layout_above="@+id/seekBar"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginStart="5dp"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/prev_button"
+        android:background="@color/colorAccent"
+        android:layout_above="@+id/seekBar"
+        android:layout_toEndOf="@+id/play_button" />
+</RelativeLayout>

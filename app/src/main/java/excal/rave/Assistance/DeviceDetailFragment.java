@@ -289,7 +289,8 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             //create socket to server
 //            ClientSocket clientSocket = new ClientSocket(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
             if(!ClientSocketSingleton.getIsClientCreated()){
-                ClientSocket clientSocket = ClientSocketSingleton.getClientSocket();
+                ClientSocket clientSocket = new ClientSocket();
+                ClientSocketSingleton.setClientSocket(clientSocket);
                 ClientSocketSingleton.setValues(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
                 connectToServerThread = new Thread(clientSocket);
 

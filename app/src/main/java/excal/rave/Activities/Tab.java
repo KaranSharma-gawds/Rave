@@ -10,6 +10,8 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.provider.Settings;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -53,6 +55,7 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    private FloatingActionButton fab;
     public static WifiP2pManager manager;
     private static boolean isWifiP2pEnabled = false;
     private Channel channel;
@@ -62,6 +65,8 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
     private BroadcastReceiver receiver = null;
     public static Activity thisActivity;
     public static Context thisContext;
+
+    private ViewPagerAdapter adapter;
 
     public static DeviceListFragment listFragment = null;
     public static DeviceDetailFragment detailFragment = null;
@@ -93,6 +98,44 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+                TabLayout.Tab tab = tabLayout.getTabAt(2);
+                tab.select();*/
+                Intent intent = new Intent(thisActivity,SelectedSongs.class);
+                startActivity(intent);
+
+
+            }
+        });
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                if(position==1){
+                    fab.show();
+                }else{
+                    fab.hide();
+                }
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if(position==1){
+                    fab.show();
+                }else{
+                    fab.hide();
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
         Log.v(TAG,"--"+ (ServerSocketSingleton.getIsServerSocketCreated()?"ServerSocket created":"ServerSocket not created"));
     }
@@ -261,16 +304,22 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
 
 
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter = new ViewPagerAdapter(getSupportFragmentManager());
         listFragment = new DeviceListFragment();
         adapter.addFragment(listFragment, "PEERS");
         if(role.equals("MASTER")){
-            adapter.addFragment(new DeviceListFragment(), "ALL SONG");
+            adapter.addFragment(new SampleActivity(), "ALL SONG");
         }
 //        adapter.addFragment(new ThreeFragment(), "SHARED SONGS");
-        adapter.addFragment(new DeviceListFragment(), "PLAY");
+        //adapter.addFragment(new SelectedSongs(), "PLAY");
         viewPager.setAdapter(adapter);
+
     }
+
+/*    public static void addSelectedSongs(){
+        adapter.addFragment(new SelectedSongs(),"PLAY");
+        adapter.notifyDataSetChanged();
+    }*/
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
