@@ -19,7 +19,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-import excal.rave.Activities.test;
 import excal.rave.R;
 
 /**
@@ -41,6 +40,7 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
         this.context = context;
         this.activity = activity;
     }
+
     public void init() {
         previousButton = (Button) activity.findViewById(R.id.prev_button);
         playButton = (Button) activity.findViewById(R.id.play_button);

@@ -38,9 +38,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             super(view);
             this.view = view;
             songTitle = (TextView) view.findViewById(R.id.title);
+
         }
     }
-
+    public void setObject(PlaySongs pSongs){
+        this.pSongs = pSongs;
+    }
     public RecyclerAdapter(List<Song> songList,Context context,AppCompatActivity activity){
         this.songList = songList;
         this.context = context;
@@ -63,7 +66,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             @Override
             public void onClick(View view) {
                 song.setSelected(!song.isSelected());
-                if(activity.getBaseContext().getClass() == SampleActivity.class) {
+                /*if(activity.getBaseContext().getClass() == SampleActivity.class) {*/
                     if (song.isSelected()) {
                         holder.view.setBackgroundColor(ContextCompat.getColor(context, R.color.selectedItem));
                         selectedSongList.add(song);
@@ -77,7 +80,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                     } else {
                         ((SampleActivity) activity).getFab().setVisibility(View.VISIBLE);
                     }
-                }else{
+                /*}*//*else{
                     if (pSongs.mp.isPlaying()) {
                         if (currentPlaying == position) {
                             pSongs.mp.pause();
@@ -99,12 +102,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                     }
                     currentPlaying = position;
                     selectedView = view;
-                }
+                }*/
 
                 }
             });
     }
-
+    public List<Song> getList(){
+        return selectedSongList;
+    }
     @Override
     public int getItemCount() {
         return songList.size();
