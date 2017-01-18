@@ -17,6 +17,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import excal.rave.Activities.test;
 import excal.rave.R;
@@ -31,10 +32,11 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
     private SeekBar seekBar;
     private Context context;
     private View activity;
+    int position = -1;
     private ArrayList<String> selectedTitle;
     private ArrayList<String> allSongsData;
     private ArrayList<String> selectedData;
-    private ArrayList<String> playlist;
+    private List<Song> playlist;
     public PlaySongs(Context context, View activity) {
         this.context = context;
         this.activity = activity;
@@ -54,7 +56,7 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
         nextButton.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
     }
-    public void listToBePlayed(ArrayList<String> playlist){
+    public void listToBePlayed(List<Song> playlist) {
         this.playlist = playlist;
     }
     @Override
@@ -64,8 +66,7 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
                 if (b)
                     mp.seekTo(i);
             } else if (mp == null) {
-                Toast.makeText(context, "Media is not running",
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Media is not running", Toast.LENGTH_SHORT).show();
                 seekBar.setProgress(0);
             }
         } catch (Exception e) {
@@ -85,7 +86,6 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
     public void run() {
         int currentPosition = mp.getCurrentPosition();
         int total = mp.getDuration();
-
         while (mp != null && currentPosition < total) {
             try {
                 Thread.sleep(500);
@@ -99,10 +99,10 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
 
     public void playSong(int position) {
         mp.reset();
-
+        this.position=position;
         try {
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mp.setDataSource(playlist.get(position));
+            mp.setDataSource(playlist.get(position).getData());
             mp.prepare();
             mp.start();
             seekBar.setMax(mp.getDuration());
@@ -123,11 +123,19 @@ public class PlaySongs implements Runnable, View.OnClickListener,SeekBar.OnSeekB
                     playButton.setText("Pause");
                     mp.start();
                 }
+                break;
             }
             case R.id.next_button:{
+                if((position+1)>=playlist.size())
+                    position = -1;
+                playSong(position++);
+                break;
             }
             case R.id.prev_button :{
-
+                if(position==0)
+                   position = playlist.size();
+                playSong(position-1);
+                break;
             }
         }
     }

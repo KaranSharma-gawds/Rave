@@ -3,6 +3,9 @@ package excal.rave.Activities;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.Adapter;
@@ -12,18 +15,23 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import excal.rave.Assistance.PlaySongs;
+import excal.rave.Assistance.RecyclerAdapter;
+import excal.rave.Assistance.RecyclerViewDivider;
+import excal.rave.Assistance.Song;
 import excal.rave.R;
 
 public class SelectedSongs extends AppCompatActivity implements AdapterView.OnItemClickListener {
+    List<Song> selectedSongs;
     private SparseArray<View> selectedViews;
     PlaySongs pSongs;
-    View thisActivity;
+    View thisActivity;/*
     ArrayList<String> selectedSongs;
-    ArrayList<String> selectedTitles;
-    ListView songsList;
-    ArrayAdapter<String> adapter;
+    ArrayList<String> selectedTitles;*/
+    RecyclerView songsList;
+    RecyclerAdapter adapter;
     private int currentPlaying = -1;
     private View selectedView;
 
@@ -33,18 +41,20 @@ public class SelectedSongs extends AppCompatActivity implements AdapterView.OnIt
         setContentView(R.layout.activity_selected_songs);
         thisActivity = findViewById(R.id.playlist);
         pSongs = new PlaySongs(this, thisActivity);
-        songsList = (ListView) findViewById(R.id.songs_list);
+        songsList = (RecyclerView) findViewById(R.id.songs_list);
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        selectedSongs = bundle.getStringArrayList("selectedSongs");
-        selectedTitles = bundle.getStringArrayList("selectedTitles");
         pSongs.init();
         pSongs.setListeners();
+        adapter = new RecyclerAdapter(selectedSongs,this,this);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         pSongs.listToBePlayed(selectedSongs);
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, selectedTitles);
+        songsList.setLayoutManager(mLayoutManager);
+        songsList.setItemAnimator(new DefaultItemAnimator());
+        songsList.setHasFixedSize(true);
+        songsList.addItemDecoration(new RecyclerViewDivider(this, LinearLayoutManager.VERTICAL));
+        songsList.setItemAnimator(new DefaultItemAnimator());
         songsList.setAdapter(adapter);
-        songsList.setOnItemClickListener(this);
-
     }
 
     @Override

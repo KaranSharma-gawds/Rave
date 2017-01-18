@@ -14,6 +14,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import excal.rave.Activities.SampleActivity;
+import excal.rave.Activities.SelectedSongs;
 import excal.rave.R;
 
 /**
@@ -22,8 +24,12 @@ import excal.rave.R;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecyclerList> {
     List<Song> songList;
-    private SparseBooleanArray selectedItems;
+    List<Song> selectedSongList;
     Context context;
+    PlaySongs pSongs;
+    int currentPlaying;
+    AppCompatActivity activity;
+    View selectedView;
 
     public class RecyclerList extends RecyclerView.ViewHolder{
         public TextView songTitle;
@@ -35,61 +41,73 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         }
     }
 
-    public RecyclerAdapter(List<Song> songList,Context context){
+    public RecyclerAdapter(List<Song> songList,Context context,AppCompatActivity activity){
         this.songList = songList;
         this.context = context;
-
+        this.activity = activity;
     }
     @Override
     public RecyclerList onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.song_list_layout,parent,false);
+        selectedSongList = new ArrayList<>();
        // selectedItems = new SparseBooleanArray();
         return new RecyclerList(view);
     }
     @Override
-    public void onBindViewHolder(final RecyclerList holder, int position) {
+    public void onBindViewHolder(final RecyclerList holder, final int position) {
         final Song song = songList.get(position);
         holder.songTitle.setText(song.getTitle());
-        AppCompatActivity activity;
-        holder.view.setBackgroundColor(song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem) : ContextCompat.getColor(context,R.color.deselectedItem));
+        holder.view.setBackgroundColor(song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem):ContextCompat.getColor(context,R.color.deselectedItem));
+
         holder.songTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 song.setSelected(!song.isSelected());
-                holder.view.setBackgroundColor(song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem):ContextCompat.getColor(context,R.color.deselectedItem));
-            }
-        });
+                if(activity.getBaseContext().getClass() == SampleActivity.class) {
+                    if (song.isSelected()) {
+                        holder.view.setBackgroundColor(ContextCompat.getColor(context, R.color.selectedItem));
+                        selectedSongList.add(song);
+                    } else {
+                        holder.view.setBackgroundColor(ContextCompat.getColor(context, R.color.deselectedItem));
+                        selectedSongList.remove(song);
+                    }
+
+                    if (selectedSongList.size() == 0) {
+                        ((SampleActivity) activity).getFab().setVisibility(View.GONE);
+                    } else {
+                        ((SampleActivity) activity).getFab().setVisibility(View.VISIBLE);
+                    }
+                }else{
+                    if (pSongs.mp.isPlaying()) {
+                        if (currentPlaying == position) {
+                            pSongs.mp.pause();
+                        } else {
+                            pSongs.playSong(position);
+                            view.setBackgroundResource(R.color.selectedItem);
+                            selectedView.setBackgroundResource(R.color.deselectedItem);
+                        }
+                    } else {
+                        if (currentPlaying == position) {
+                            pSongs.mp.start();
+                        } else {
+                            view.setBackgroundResource(R.color.selectedItem);
+                            if(currentPlaying != -1) {
+                                selectedView.setBackgroundResource(R.color.deselectedItem);
+                            }
+                            pSongs.playSong(position);
+                        }
+                    }
+                    currentPlaying = position;
+                    selectedView = view;
+                }
+
+                }
+            });
     }
 
     @Override
     public int getItemCount() {
         return songList.size();
-    }
-
-    public void toggleSelection(int pos) {
-        if (selectedItems.get(pos, false)) {
-            selectedItems.delete(pos);
-        }
-        else {
-            selectedItems.put(pos, true);
-        }
-        notifyItemChanged(pos);
-    }
-
-    public void clearSelections() {
-        selectedItems.clear();
-        notifyDataSetChanged();
-    }
-    public int getSelectedItemCount(){
-        return selectedItems.size();
-    }
-    public List<Integer> getSelectedItems() {
-        List<Integer> items =
-                new ArrayList<Integer>(selectedItems.size());
-        for (int i = 0; i < selectedItems.size(); i++) {
-            items.add(selectedItems.keyAt(i));
-        }
-        return items;
     }
 
 }
