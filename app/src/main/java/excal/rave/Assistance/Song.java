@@ -7,6 +7,7 @@ package excal.rave.Assistance;
 public class Song {
     private String title;
     private String data;
+    private boolean isSelected = false;
     public Song(){}
     public String getTitle(){
         return this.title;
@@ -19,5 +20,11 @@ public class Song {
     }
     public void setData(String data){
         this.data = data;
+    }
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+    public boolean isSelected() {
+        return isSelected;
     }
 }
