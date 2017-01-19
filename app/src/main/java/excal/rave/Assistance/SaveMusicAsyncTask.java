@@ -1,6 +1,8 @@
 package excal.rave.Assistance;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -80,6 +82,24 @@ public class SaveMusicAsyncTask extends AsyncTask<Void, Void, String> {
             intent.setAction(android.content.Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse("file://" + result), "image/*");
             activity.startActivity(intent);*/
+            NotificationManager manager= (NotificationManager)activity.getApplicationContext().getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+            Notification.Builder builder = new Notification.Builder(activity.getApplicationContext());
+
+            builder.setAutoCancel(false);
+            builder.setTicker("RAVE");
+            builder.setContentTitle("Music file received");
+            builder.setContentText(result);
+            builder.setSmallIcon(R.drawable.icon);
+//            builder.setContentIntent(sender);
+            builder.setOngoing(false);
+            builder.setSubText("This is subtext...");   //API level 16
+            builder.build();
+
+            Notification myNotication = builder.getNotification();
+            manager.notify(11, myNotication);
+
+
+
             ClientSocket.isFileCopied = true;
             Toast.makeText(activity, "music file saved: "+result, Toast.LENGTH_SHORT).show();
         }else{

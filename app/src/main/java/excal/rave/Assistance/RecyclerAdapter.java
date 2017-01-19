@@ -6,10 +6,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +23,9 @@ import excal.rave.R;
  */
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecyclerList> {
-    List<Song> songList = new ArrayList<>();
-    List<Song> selectedSongList = new ArrayList<>();
+    List<Song> songList;
+    List<Song> selectedSongList;
+    //static List<View> selectedViewsList;
     Context context;
     PlaySongs pSongs;
     int currentPlaying;
@@ -30,7 +33,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     Fragment fragment;
     View selectedView;
     int activityId;
-
     public static final int SAMPLEACTIVITY= 1;
     public static final int SELECTEDSONGS = 1;
 
@@ -53,6 +55,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 //        this.activity = activity;
         this.fragment = fragment;
         this.activityId = activityId;
+        selectedView = new View(context);
     }
     public RecyclerAdapter(List<Song> songList, Context context, AppCompatActivity activity, int activityId){
         this.songList = songList;
@@ -60,6 +63,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         this.activity = activity;
         this.fragment = fragment;
         this.activityId = activityId;
+        selectedView = new View(context);
     }
 
     @Override
@@ -74,7 +78,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         final Song song = songList.get(position);
         holder.songTitle.setText(song.getTitle());
         if(activityId==1)
-        holder.view.setBackgroundColor(song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem):ContextCompat.getColor(context,R.color.deselectedItem));
+            holder.view.setBackgroundColor(song.isSelected() ? ContextCompat.getColor(context,R.color.selectedItem):ContextCompat.getColor(context,R.color.deselectedItem));
         else if(activityId == 2)
             holder.view.setBackgroundColor(ContextCompat.getColor(context,R.color.deselectedItem));
         holder.songTitle.setOnClickListener(new View.OnClickListener() {
@@ -85,46 +89,73 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                     if (song.isSelected()) {
                         holder.view.setBackgroundColor(ContextCompat.getColor(context, R.color.selectedItem));
                         selectedSongList.add(song);
+                        // SampleActivity.selectedViewsList.add(view);
+                        //  Toast.makeText(context,"Added to selected Views",Toast.LENGTH_SHORT).show();
                     } else {
                         holder.view.setBackgroundColor(ContextCompat.getColor(context, R.color.deselectedItem));
                         selectedSongList.remove(song);
+                        //SampleActivity.selectedViewsList.remove(view);
+                        //  Toast.makeText(context,"Removed from selected Views",Toast.LENGTH_SHORT).show();
                     }
 
-                    /*if (selectedSongList.size() == 0) {
-                        ((SampleActivity) fragment).getFab().setVisibility(View.GONE);
+/*                    if (selectedSongList.size() == 0) {
+                        ((SampleActivity) activity).getFab().setVisibility(View.GONE);
                     } else {
-                        ((SampleActivity) fragment).getFab().setVisibility(View.VISIBLE);
+                        ((SampleActivity) activity).getFab().setVisibility(View.VISIBLE);
                     }*/
                 } else if(activityId == 2 ) {
+                    selectedView = pSongs.getPreviousView();
+                    int prevPosition = pSongs.getPrevPosition();
+                    Log.v("DEBUG", position + "   ");
+                    Toast.makeText(context, "Previous Position is " + prevPosition, Toast.LENGTH_SHORT).show();
                     if (pSongs.mp.isPlaying()) {
-                        if (currentPlaying == position) {
+                        if (prevPosition/*currentPlaying*/ == position) {
                             pSongs.mp.pause();
                         } else {
                             pSongs.playSong(position);
-                            view.setBackgroundResource(R.color.selectedItem);
+                            Toast.makeText(context, "Previous Position is  " + prevPosition + "and current position is " + position, Toast.LENGTH_SHORT).show();
                             selectedView.setBackgroundResource(R.color.deselectedItem);
+//                            songs_list.findViewHolderForAdapterPosition(prevPosition).itemView.setBackgroundResource(R.color.deselectedItem);
+                            view.setBackgroundResource(R.color.selectedItem);/*
+                view.setBackgroundResource(R.color.selectedItem);
+                selectedView.setBackgroundResource(R.color.deselectedItem);*/
                         }
                     } else {
-                        if (currentPlaying == position) {
+                        if (prevPosition/*currentPlaying*/ == position) {
                             pSongs.mp.start();
                         } else {
+                            Toast.makeText(context, "Previous Position is  " + prevPosition + "and current position is " + position, Toast.LENGTH_SHORT).show();
                             view.setBackgroundResource(R.color.selectedItem);
-                            if(currentPlaying != -1) {
+                            if (prevPosition != -1)
+                                selectedView.setBackgroundResource(R.color.deselectedItem);
+//                                findViewHolderForAdapterPosition(prevPosition).itemView.setBackgroundResource(R.color.deselectedItem);
+                            view.setBackgroundResource(R.color.selectedItem);
+
+                            if (prevPosition != -1) {
                                 selectedView.setBackgroundResource(R.color.deselectedItem);
                             }
+
                             pSongs.playSong(position);
                         }
                     }
-                    currentPlaying = position;
-                    selectedView = view;
+                    //prevPosition = position;
+                    Toast.makeText(context, "setPreviousPosition Called", Toast.LENGTH_SHORT).show();
+                    pSongs.setPrevPosition(position);
+                    pSongs.setPreviousView(view);
+                    // selectedView = pSongs.getSelectedView();
                 }
+                currentPlaying = position;
+                selectedView = view;
 
-                }
-            });
+            }
+        });
     }
     public List<Song> getList(){
         return selectedSongList;
     }
+    /*public List<View> getSelectedViewsList(){
+       return SampleActivity.selectedViewsList;
+   }*/
     @Override
     public int getItemCount() {
         return songList.size();

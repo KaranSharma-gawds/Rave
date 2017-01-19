@@ -104,17 +104,17 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         mContentView.findViewById(R.id.btn_start_client).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Allow user to pick an image from Gallery or other registered apps
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("audio/*");
-                startActivityForResult(intent, CHOOSE_FILE_RESULT_CODE);
+//                // Allow user to pick an image from Gallery or other registered apps
+//                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//                intent.setType("audio/*");
+//                startActivityForResult(intent, CHOOSE_FILE_RESULT_CODE);
             }
         });
 
         return mContentView;
     }
 
-    @Override
+/*    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Uri uri = data.getData();
 
@@ -128,22 +128,27 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
                     clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
                     clientIntent.putExtra(SendToClientService.EXTRAS_MESSAGE_TYPE, "musicFile");
                     clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
-                    SocketSingleton.setSocket(socket);
+
+                    MySocket mySocket = new MySocket(socket);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("Socket",mySocket);
+                    clientIntent.putExtras(bundle);
+
                     getActivity().startService(clientIntent);
                 }else{
                     client_list.remove(socket);
                     Log.v(Tag,"--a socket removed");
                 }
             }
-            /*try {
+            *//*try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }*/
+            }*//*
         }else{
             Toast.makeText(getActivity().getApplicationContext(), "No image selected", Toast.LENGTH_SHORT).show();
         }
-    }
+    }*/
 
     public void connectDevice(WifiP2pDevice device){
         this.device = device;

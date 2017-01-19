@@ -37,7 +37,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:id="@+id/next_button"
+                android:id="@+id/prev_button"
                 android:background="@color/selectedItem"
                 android:text="Previous" />
 
@@ -55,7 +55,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="30dp"
-                android:id="@+id/prev_button"
+                android:id="@+id/next_button"
                 android:background="@color/selectedItem"
                 android:text="Next" />
         </LinearLayout>

@@ -36,6 +36,7 @@ import excal.rave.Assistance.DeviceDetailFragment;
 import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Assistance.ReceiverForWifi;
+import excal.rave.Assistance.SendToClientService;
 import excal.rave.Assistance.ServerSocketSingleton;
 import excal.rave.R;
 
@@ -209,6 +210,8 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
             DeviceDetailFragment.getClientsThread = null;
         }
         ServerSocketSingleton.setIsServerSocketCreated(false);
+
+
 
         try{
             ArrayList<Socket> list = DeviceDetailFragment.client_list;

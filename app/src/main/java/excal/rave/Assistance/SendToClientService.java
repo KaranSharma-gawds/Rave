@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.util.Log;
 import android.widget.Toast;
@@ -40,7 +41,9 @@ public class SendToClientService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
         if(intent.getAction().equals(ACTION_SEND_FILE)){
-            Socket socket = SocketSingleton.getSocket();
+//            Socket socket = SocketSingleton.getSocket();
+            //MySocket mySocket = (MySocket) intent.getExtras().getSerializable("Socket");
+            Socket socket = MySocket.getSocket();
             if(socket==null){
                 Log.v(Tag,"--null socket");
                 Toast.makeText(this, "null socket", Toast.LENGTH_SHORT).show();

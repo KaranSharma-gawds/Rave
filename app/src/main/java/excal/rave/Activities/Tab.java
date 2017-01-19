@@ -43,6 +43,7 @@ import excal.rave.Assistance.DeviceDetailFragment;
 import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
 import excal.rave.Assistance.GetClients;
+import excal.rave.Assistance.MySocket;
 import excal.rave.Assistance.ReceiverForWifi;
 import excal.rave.Assistance.SendToClientService;
 import excal.rave.Assistance.ServerSocketSingleton;
@@ -50,6 +51,7 @@ import excal.rave.Assistance.SocketSingleton;
 import excal.rave.R;
 
 import static android.os.Looper.getMainLooper;
+import static excal.rave.Assistance.DeviceDetailFragment.MyIpAddress_client;
 import static excal.rave.Assistance.DeviceDetailFragment.client_list;
 
 
@@ -311,6 +313,10 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(data == null){
+            Toast.makeText(thisActivity, "No Song selected", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Uri uri = data.getData();
 
         // Host is to send some data to all clients
@@ -323,8 +329,12 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
                     clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
                     clientIntent.putExtra(SendToClientService.EXTRAS_MESSAGE_TYPE, "musicFile");
                     clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
-                    // TODO: send socket via intent
-                    SocketSingleton.setSocket(socket);
+
+                    MySocket.setSocket(socket);
+//                    MySocket mySocket = new MySocket(socket);
+                    //Bundle bundle = new Bundle();
+                   // bundle.putSerializable("Socket",mySocket);
+                    //clientIntent.putExtras(bundle);
 
                     startService(clientIntent);
                     Log.v(TAG,"--sending to socket: "+socket);
