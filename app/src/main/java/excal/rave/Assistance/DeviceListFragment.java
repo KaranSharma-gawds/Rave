@@ -1,5 +1,7 @@
 package excal.rave.Assistance;
 
+import android.nfc.Tag;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -30,6 +32,7 @@ import android.widget.Toast;
  * Created by Karan on 04-01-2017.
  */
 public class DeviceListFragment extends ListFragment implements PeerListListener{
+    private static String TAG = "DeviceListFragment";
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     ProgressDialog progressDialog = null;
     View mContentView = null;
@@ -146,11 +149,26 @@ public class DeviceListFragment extends ListFragment implements PeerListListener
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         WifiP2pDevice device = (WifiP2pDevice) getListAdapter().getItem(position);
-        ((DeviceActionListener) getActivity()).showDetails(device);
+
+//        TODO: add dialog to dis/connect
+
+        if(device.status!=WifiP2pDevice.CONNECTED){
+            ((DeviceActionListener) getActivity()).showDetails(device);
+            Log.v(TAG,"--connecting");
+        }else{
+            if(Tab.role.equals("SLAVE")) {
+                Log.v(TAG,"--disconnecting");
+                ((DeviceActionListener) getActivity()).disconnect();
+            }
+            else{
+                Snackbar.make(mContentView,"People are enjoying and you are being selfish by leaving.. Too bad!",Snackbar.LENGTH_LONG);
+                Toast.makeText(getActivity(), "People are enjoying and you are being selfish by leaving.. Too bad!", Toast.LENGTH_LONG).show();
+            }
+        }
         /*if(device.status != WifiP2pDevice.CONNECTED)
             ((DeviceActionListener) getActivity()).showDetails(device);
         else{
-        TODO: add dialog to disconnect
+
             ((DeviceActionListener) getActivity()).disconnect();
 //            Toast.makeText(Tab.thisContext, "already connected", Toast.LENGTH_SHORT).show();
         }*/

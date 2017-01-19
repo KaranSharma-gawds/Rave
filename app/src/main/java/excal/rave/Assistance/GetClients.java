@@ -32,11 +32,11 @@ public class GetClients implements Runnable {
             while(!Thread.currentThread().isInterrupted()){
                 Socket socket = serverSocket.accept();
                 DeviceDetailFragment.client_list.add(socket);
+                Log.v(Tag,"--socket accepted:"+socket);
 //                DataOutputStream dout=new DataOutputStream(socket.getOutputStream());
 //                dout.writeUTF("Hello from server");
 //                dout.flush();
 
-                Log.v(Tag,"--Client connected");
             }
         } catch (IOException e) {
             e.printStackTrace();

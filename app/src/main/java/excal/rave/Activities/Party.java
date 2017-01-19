@@ -161,14 +161,6 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
 
     public static void Destroy() {
         Log.v(TAG,"--Party.Destroy()");
-        if(DeviceDetailFragment.getClientsThread!=null) {
-            DeviceDetailFragment.getClientsThread.interrupt();
-            DeviceDetailFragment.getClientsThread = null;
-        }
-        if(DeviceDetailFragment.connectToServerThread!=null){
-            DeviceDetailFragment.connectToServerThread.interrupt();
-            DeviceDetailFragment.connectToServerThread = null;
-        }
         if(Tab.role.equals("MASTER"))
             closeSockets();
         if(Tab.role.equals("SLAVE"));
@@ -179,14 +171,21 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
         if(ClientSocketSingleton.getIsClientCreated()){
             ClientSocket s = ClientSocketSingleton.getClientSocket();
             try {
-                s.socket.close();
+                if(s.socket!=null)
+                    s.socket.close();
                 ClientSocketSingleton.setClientSocket(null);
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.v(TAG,"--cant close clientSocket");
             }
         }
+        if(DeviceDetailFragment.connectToServerThread!=null){
+            DeviceDetailFragment.connectToServerThread.interrupt();
+            DeviceDetailFragment.connectToServerThread = null;
+        }
         ClientSocketSingleton.setIsClientCreated(false);
+
+        ((DeviceActionListener) Tab.thisActivity).disconnect();
     }
 
 
@@ -204,6 +203,10 @@ public class Party /* extends AppCompatActivity implements ChannelListener, Devi
         }else if(s!=null && s.isClosed()){
             ServerSocketSingleton.setSocket(null);
             Log.v(TAG,"--serverSocket was already closed");
+        }
+        if(DeviceDetailFragment.getClientsThread!=null) {
+            DeviceDetailFragment.getClientsThread.interrupt();
+            DeviceDetailFragment.getClientsThread = null;
         }
         ServerSocketSingleton.setIsServerSocketCreated(false);
 

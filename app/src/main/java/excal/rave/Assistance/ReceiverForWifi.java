@@ -11,6 +11,7 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import excal.rave.Activities.Tab;
 import excal.rave.R;

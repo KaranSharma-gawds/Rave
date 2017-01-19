@@ -252,7 +252,8 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
         }).create();
         alertDialog.show();*/
 
-        Toast.makeText(Tab.thisContext  , "Group Owner IP - " + info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+//        if(info!=null && info.groupOwnerAddress!=null)
+//        Toast.makeText(Tab.thisContext  , "Group Owner IP - " + info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 
 
         if(Tab.role.equals("MASTER")){
@@ -263,25 +264,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
             // master sends data.. it can remember all the sockets for repetitive sending
 
             //accepting client requests
-            if(!ServerSocketSingleton.getIsServerSocketCreated()){
-                //to check that Server is created only once
-                try {
-                    ServerSocket serverSocket = new ServerSocket();
-                    serverSocket.setReuseAddress(true);
-                    serverSocket.bind(new InetSocketAddress(port_no));
-                    Log.v(Tag,"ServerSocketmade");
-
-                    ServerSocketSingleton.setIsServerSocketCreated(true);
-                    ServerSocketSingleton.setSocket(serverSocket);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                GetClients getClients = new GetClients();
-                getClientsThread = new Thread(getClients);
-                getClientsThread.start();
-                Toast.makeText(Tab.thisContext, "Master hosting party", Toast.LENGTH_SHORT).show();
-                Log.v(Tag,"--calling getClients");
-            }
+//            openServerSocket();
 
         } else{
 
@@ -294,11 +277,11 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
                 ClientSocketSingleton.setValues(info.groupOwnerAddress.getHostAddress(),Tab.thisActivity);
                 connectToServerThread = new Thread(clientSocket);
 
-                try {
+                /*try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     Log.v(Tag,"--cant sleep thread before client creation");
-                }
+                }*/
 
                 ClientSocketSingleton.setIsClientCreated(true);
                 connectToServerThread.start();
@@ -331,7 +314,7 @@ public class DeviceDetailFragment extends Fragment implements ConnectionInfoList
                 }
                 bytesRead+=len;
                 out.write(buf, 0, len);
-                Log.v(Tag,"--"+len + "  file:"+fileSize + "  read:" + bytesRead);
+//                Log.v(Tag,"--"+len + "  file:"+fileSize + "  read:" + bytesRead);
             }
             Calendar c1= Calendar.getInstance();
             long t1 = c1.getTimeInMillis();

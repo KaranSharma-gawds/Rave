@@ -80,6 +80,7 @@ public class SaveMusicAsyncTask extends AsyncTask<Void, Void, String> {
             intent.setAction(android.content.Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse("file://" + result), "image/*");
             activity.startActivity(intent);*/
+            ClientSocket.isFileCopied = true;
             Toast.makeText(activity, "music file saved: "+result, Toast.LENGTH_SHORT).show();
         }else{
             Log.v(Tag,"null result");

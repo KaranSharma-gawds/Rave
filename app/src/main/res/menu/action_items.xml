@@ -17,12 +17,11 @@
         android:title="No of Clients" />
 
     <item
-        android:id="@+id/tabs"
-        android:title="Tab Layout" />
-
-    <item
         android:id="@+id/sending"
         android:title="Send Files" />
 
+    <item
+        android:id="@+id/socket_check"
+        android:title="Socket Check"/>
 
 </menu>

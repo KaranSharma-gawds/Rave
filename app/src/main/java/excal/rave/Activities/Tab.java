@@ -30,14 +30,19 @@ import android.widget.Toast;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.ChannelListener;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import excal.rave.Assistance.ClientSocketSingleton;
 import excal.rave.Assistance.DeviceDetailFragment;
 import excal.rave.Assistance.DeviceListFragment;
 import excal.rave.Assistance.DeviceListFragment.DeviceActionListener;
+import excal.rave.Assistance.GetClients;
 import excal.rave.Assistance.ReceiverForWifi;
 import excal.rave.Assistance.SendToClientService;
 import excal.rave.Assistance.ServerSocketSingleton;
@@ -137,7 +142,6 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
             }
         });
 
-        Log.v(TAG,"--"+ (ServerSocketSingleton.getIsServerSocketCreated()?"ServerSocket created":"ServerSocket not created"));
     }
 
     @Override
@@ -148,10 +152,32 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
 //        party = new Party(Tab.this,getApplicationContext(),role);
         setup();
 //        party.Resume();
+        openServerSocket();
 
 
         receiver = new ReceiverForWifi(manager, channel, thisActivity, this);
-        thisActivity.registerReceiver(receiver, intentFilter);
+        registerReceiver(receiver, intentFilter);
+    }
+
+    void openServerSocket(){
+        if(!ServerSocketSingleton.getIsServerSocketCreated()){
+            //to check that Server is created only once
+            try {
+                ServerSocket serverSocket = new ServerSocket();
+                serverSocket.setReuseAddress(true);
+                serverSocket.bind(new InetSocketAddress(DeviceDetailFragment.port_no));
+                Log.v(TAG,"ServerSocketmade");
+
+                ServerSocketSingleton.setIsServerSocketCreated(true);
+                ServerSocketSingleton.setSocket(serverSocket);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            GetClients getClients = new GetClients();
+            DeviceDetailFragment.getClientsThread = new Thread(getClients);
+            DeviceDetailFragment.getClientsThread.start();
+            Log.v(TAG,"--calling getClients");
+        }
     }
 
     void setup(){
@@ -192,8 +218,16 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(receiver);
+        Toast.makeText(thisActivity, "destroy", Toast.LENGTH_SHORT).show();
+//        unregisterReceiver(receiver); //receiver leak
         Party.Destroy();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Toast.makeText(thisActivity, "onStop", Toast.LENGTH_SHORT).show();
+        unregisterReceiver(receiver);
     }
 
     @Override
@@ -251,9 +285,15 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
                     Toast.makeText(this, "Beware! You are only a client..", Toast.LENGTH_SHORT).show();
                 return true;
 
-            case R.id.tabs:
-                Intent intent = new Intent(this,Tab.class);
-                startActivity(intent);
+            case R.id.socket_check:
+                boolean s = ServerSocketSingleton.getIsServerSocketCreated();
+                boolean c = ClientSocketSingleton.getIsClientCreated();
+                Log.v(TAG,"--serverSocketCreated:"+(s?"true":"false"));
+                Log.v(TAG,"--clientSocketCreated:"+(c?"true":"false"));
+                if(role.equals("MASTER"))
+                    Toast.makeText(thisActivity, "serverSocketCreated:"+(s?"true":"false"), Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(thisActivity, "--clientSocketCreated:"+(c?"true":"false"), Toast.LENGTH_SHORT).show();
                 return true;
 
             case R.id.sending:
@@ -283,8 +323,11 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
                     clientIntent.setAction(SendToClientService.ACTION_SEND_FILE);
                     clientIntent.putExtra(SendToClientService.EXTRAS_MESSAGE_TYPE, "musicFile");
                     clientIntent.putExtra(SendToClientService.EXTRAS_FILE_PATH, uri.toString());
+                    // TODO: send socket via intent
                     SocketSingleton.setSocket(socket);
+
                     startService(clientIntent);
+                    Log.v(TAG,"--sending to socket: "+socket);
                 }else{
                     client_list.remove(socket);
                     Log.v(TAG,"--a socket removed");
@@ -455,6 +498,8 @@ public class Tab extends AppCompatActivity implements ChannelListener, DeviceAct
             @Override
             public void onSuccess() {
                 Log.v(TAG,"--disconnected");
+                if(role.equals("SLAVE"))
+                    Party.closeClientSocket();
 //                fragment.getView().setVisibility(View.GONE);
             }
         });

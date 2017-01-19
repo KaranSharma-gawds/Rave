@@ -29,6 +29,7 @@ public class ClientSocket implements Runnable {
     private String serverAddress;
     private Activity activity;
     private static final int SOCKET_TIMEOUT = 5000;
+    public static boolean isFileCopied = false;
 
     public ClientSocket() {
         socket = new Socket();
@@ -45,7 +46,7 @@ public class ClientSocket implements Runnable {
     public void run() {
         try {
             socket.bind(null);
-            socket.connect(new InetSocketAddress(serverAddress,DeviceDetailFragment.port_no), SOCKET_TIMEOUT);
+            socket.connect(new InetSocketAddress(serverAddress,DeviceDetailFragment.port_no), 0);   //infinite timeout
             Log.v(Tag,"--client socket made");
             DeviceDetailFragment.MyIpAddress_client = socket.getLocalAddress().getHostAddress();
             generateToast("MyIpAddress: "+DeviceDetailFragment.MyIpAddress_client);
@@ -70,12 +71,22 @@ public class ClientSocket implements Runnable {
                     //fileName
                     s=din.readUTF();
                     Log.v(Tag,"--creating task");
+                    isFileCopied = false;
                     new SaveMusicAsyncTask(socket,activity,fileSize,s).execute();
                 }else if(s.equals("nextSong")){
 
                 }else{
                     Log.v(Tag,"--unexpected data: "+s);
                     break;
+                }
+
+                while (isFileCopied!=true){
+                    Log.v(Tag,"--isFileCopied:false");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
